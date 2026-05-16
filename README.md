@@ -78,7 +78,19 @@ A version-switcher component is added when v0.2 ships.
 
 ## Deploy
 
-CI in this repo runs build + typecheck on every PR. Production deploys to `docs.sawala.cloud` are manual today.
+CI runs build + typecheck on every PR. Production deploys to [docs.sawala.cloud](https://docs.sawala.cloud) are manual today:
+
+```bash
+npm run deploy
+```
+
+The deployer needs to be authenticated on the Sawala account before running it.
+
+For a local preview of the production bundle:
+
+```bash
+npm run preview
+```
 
 ## Related open-source repos
 
