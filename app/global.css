@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';
+
+/*
+ * Sawala brand tokens — blue-600 → teal-500 gradient.
+ * Mirrors @sawala/ui in sawala-cloud-ui. Override Fumadocs neutral preset.
+ */
+@theme {
+  --color-fd-primary: #2563eb;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-accent: #14b8a6;
+  --color-sawala-gradient-start: #2563eb;
+  --color-sawala-gradient-end: #14b8a6;
+}
+
+:root {
+  --color-fd-primary: #2563eb;
+}
+
+.dark {
+  --color-fd-primary: #60a5fa;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
