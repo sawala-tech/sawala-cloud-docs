@@ -4,7 +4,7 @@
 
 /*
  * Sawala brand tokens — blue-600 → teal-500 gradient.
- * Mirrors @sawala/ui in sawala-cloud-ui. Override Fumadocs neutral preset.
+ * Override Fumadocs neutral preset.
  */
 @theme {
   --color-fd-primary: #2563eb;
