@@ -1,6 +1,6 @@
 # Sawala Cloud Docs
 
-Public documentation for the [Sawala Cloud](https://sawala.cloud) platform — the source of [docs.sawala.cloud](https://docs.sawala.cloud) (in-flight; see deployment status below).
+Public documentation for the [Sawala Cloud](https://sawala.cloud) platform — the source of [docs.sawala.cloud](https://docs.sawala.cloud) (in-flight).
 
 Covers every shipped Sawala product (Kontena, Berkasna, Formulir today; Sebar, Kiosna, Kelasna, Ajena as they ship) with four content surfaces per product, following the [Diátaxis](https://diataxis.fr/) shape: Tutorials, How-to Guides, Reference, and Explanation.
 
@@ -8,10 +8,9 @@ Bilingual: **Bahasa Indonesia** (default) and **English**.
 
 ## Stack
 
-- **[Fumadocs](https://fumadocs.dev) 16** — docs framework (chosen via [`docs/decisions/0001-framework-evaluation.md`](./docs/decisions/0001-framework-evaluation.md))
+- **[Fumadocs](https://fumadocs.dev) 16** — docs framework
 - **Next.js 16** (app router, `[lang]/` routing)
-- **React 19**, **Tailwind v4** — same stack as [sawala-cloud-ui](https://github.com/sawala-tech/sawala-cloud-ui)
-- **Cloudflare Workers** deploy via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare)
+- **React 19**, **Tailwind v4**
 - **Orama** — built-in client-side search
 
 ## Run locally
@@ -34,7 +33,7 @@ sawala-cloud-docs/
 ├── content/docs/           # MDX content. Locale variants by suffix:
 │   ├── index.mdx           # Indonesian (default)
 │   ├── index.en.mdx        # English
-│   └── kontena/            # one folder per product (added in M6)
+│   └── kontena/            # one folder per product
 ├── lib/
 │   ├── i18n.ts             # defineI18n config
 │   ├── layout.shared.tsx   # i18nUI + baseOptions per locale
@@ -42,8 +41,7 @@ sawala-cloud-docs/
 │   └── shared.ts           # appName, gitConfig
 ├── components/
 │   └── mdx.tsx             # MDX component registry
-├── docs/decisions/         # Architecture Decision Records (ADRs)
-├── middleware.ts           # createI18nMiddleware (NOT proxy.ts — OpenNext compat)
+├── middleware.ts           # createI18nMiddleware
 └── source.config.ts        # fumadocs-mdx config
 ```
 
@@ -65,32 +63,31 @@ The sidebar entry is auto-generated from the filename + frontmatter — no centr
 
 ## Add a translation
 
-Add `name.en.mdx` next to `name.mdx`. If the EN variant is missing, the language switcher will leave the link disabled for that page.
+Add `name.en.mdx` next to `name.mdx`. If the EN variant is missing, the language switcher leaves the link disabled for that page.
 
 ## Cut a version
 
-Versioning is convention-based — see [`docs/decisions/0001-framework-evaluation.md`](./docs/decisions/0001-framework-evaluation.md) for why Fumadocs uses this pattern rather than a built-in command.
+Versioning is convention-based:
 
 ```bash
 cp -r content/docs/{kontena,berkasna,formulir} content/docs/v0.1/
 git commit -am "chore: cut v0.1 snapshot"
 ```
 
-The version switcher in the header is wired to a `versions.json` registry (added in M6).
+A version-switcher component is added when v0.2 ships.
 
 ## Deploy
 
-Production deploy lives at `docs.sawala.cloud` on Cloudflare Workers via `@opennextjs/cloudflare`. CI in this repo runs build + typecheck on every PR; the production deploy step (M7 of the framework plan) is manual today via `wrangler deploy` from a maintainer's laptop.
+CI in this repo runs build + typecheck on every PR. Production deploys to `docs.sawala.cloud` are manual today.
 
-## Related repos
+## Related open-source repos
 
 | Repo | What it holds |
 | --- | --- |
-| **sawala-cloud-docs** (this) | Public-facing documentation source |
-| [sawala-cloud-ui](https://github.com/sawala-tech/sawala-cloud-ui) | Dashboard frontend + `@sawala/ui` + `@sawala/app-shell` |
-| [sawala-cloud-core](https://github.com/sawala-tech/sawala-cloud-core) | Backend Workers (api-gateway, kontena, berkasna, formulir, organization) |
-| [sawala-cloud](https://github.com/sawala-tech/sawala-cloud) | Roadmap, architecture, execution plans (including the plan that birthed this repo) |
-| [kodena-templates](https://github.com/sawala-tech/kodena-templates) | Sawala-built Instant Page templates |
+| **sawala-cloud-docs** (this) | Public documentation source for the Sawala Cloud platform |
+| [kodena-templates](https://github.com/sawala-tech/kodena-templates) | Sawala-built [Kodena Instant Page](https://sawala.cloud/products/kodena) templates |
+
+The Sawala Cloud platform itself (dashboard, backend services) is closed source.
 
 ## License
 
