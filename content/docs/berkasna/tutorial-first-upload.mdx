@@ -1,0 +1,100 @@
+---
+title: Tutorial — Upload pertama dengan Berkasna
+description: Implementasi alur presigned upload — request slot, PUT file dari browser, complete — dalam 10 menit.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Tutorial ini menunjukkan cara menerima upload file dari pengguna aplikasi Anda dan menyimpannya di Berkasna. Di akhir, Anda akan punya halaman dengan input file yang berhasil mengunggah ke Berkasna dan menampilkan URL publik aset yang baru tersimpan.
+
+<Callout type="info">
+**Prasyarat.** API key Berkasna (`pk_live_…` atau `sk_live_…` — secret key wajib jika upload diinisiasi dari server). Lihat [cara mint API key](/id/docs/kontena/how-to-mint-api-key) — alurnya sama untuk Berkasna.
+</Callout>
+
+<Steps>
+
+<Step>
+
+### Minta slot upload
+
+Aplikasi Anda kirim metadata file (nama, MIME type, ukuran) ke Berkasna. Berkasna balas dengan `assetId` dan `uploadUrl` (URL presigned yang berlaku sekitar 15 menit).
+
+```bash
+curl -X POST \
+  -H "X-API-Key: sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{"filename":"hero.jpg","mimeType":"image/jpeg","size":523456}' \
+  "https://api.sawala.cloud/public/berkasna/upload/presigned"
+```
+
+Response:
+
+```json
+{
+  "assetId":   "ast_abc123",
+  "r2Key":     "uploads/2026/05/hero.jpg",
+  "uploadUrl": "https://upload.sawala.cloud/...?X-Amz-Signature=...",
+  "expiresAt": "2026-05-16T10:30:00Z"
+}
+```
+
+</Step>
+
+<Step>
+
+### Upload file dari browser ke `uploadUrl`
+
+Browser melakukan `PUT` ke `uploadUrl` dengan file body. **Tidak ada API key di langkah ini** — URL sudah memuat tanda tangan kriptografi yang membuktikan otorisasi.
+
+```js
+async function uploadToBerkasna(file, uploadUrl) {
+  const res = await fetch(uploadUrl, {
+    method:  'PUT',
+    headers: { 'Content-Type': file.type },
+    body:    file,
+  });
+  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+}
+```
+
+Tracking progress? Gunakan `XMLHttpRequest` (yang punya event `progress`) sebagai pengganti `fetch`.
+
+</Step>
+
+<Step>
+
+### Beritahu Berkasna upload selesai
+
+Setelah PUT sukses, aplikasi Anda panggil endpoint complete agar Berkasna menandai asset sebagai `completed` dan menghitung URL publiknya.
+
+```bash
+curl -X POST \
+  -H "X-API-Key: sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{"assetId":"ast_abc123"}' \
+  "https://api.sawala.cloud/public/berkasna/upload/complete"
+```
+
+Response:
+
+```json
+{
+  "id":     "ast_abc123",
+  "status": "completed",
+  "url":    "https://files.sawala.cloud/proj_xxx/uploads/2026/05/hero.jpg"
+}
+```
+
+`url` adalah link publik yang bisa Anda simpan di database aplikasi atau pasang langsung di `<img src="...">`.
+
+</Step>
+
+</Steps>
+
+## Langkah selanjutnya
+
+- Tambahkan deduplikasi: cek `/upload/check-duplicate?hash=...` sebelum minta slot baru, untuk menghindari upload file yang sama dua kali.
+- Lihat [cara upload file publik](/id/docs/berkasna/how-to-upload-public-file) untuk pola yang lebih ringkas.
+- Pelajari [referensi API](/id/docs/berkasna/reference/api) lengkap.

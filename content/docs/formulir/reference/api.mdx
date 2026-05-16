@@ -1,0 +1,129 @@
+---
+title: Referensi API Formulir
+description: REST API publik Formulir — ambil definisi form, submit data, dan kelola submission.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+<Callout type="info">
+Renderer OpenAPI interaktif akan ditambahkan ketika spec publik tersedia.
+</Callout>
+
+## Base URLs
+
+Formulir punya dua surface yang melayani peran berbeda:
+
+```
+Public API:     https://api.sawala.cloud/public/formulir
+Embed delivery: https://formulir.id
+```
+
+- **Public API** (`api.sawala.cloud`) — endpoint terotorisasi via `X-API-Key`. Untuk operasi seperti list submission, ambil definisi form, dll. dari server aplikasi Anda.
+- **Embed delivery** (`formulir.id`) — endpoint publik yang dipakai oleh iframe dan komponen React di browser. Otorisasi via parameter query, bukan header.
+
+## Header wajib (Public API)
+
+```
+X-API-Key: <pk_live_… atau sk_live_…>
+```
+
+## Endpoint utama
+
+### Definisi form
+
+| Method | URL | Auth | Deskripsi |
+| --- | --- | --- | --- |
+| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}` | Public key | Ambil definisi satu form (fields + settings) |
+
+Response:
+
+```json
+{
+  "id":          "frm_abc123",
+  "slug":        "kontak-kami",
+  "name":        "Kontak Kami",
+  "description": "Form kontak resmi",
+  "fields": [
+    { "type": "text",     "name": "nama",   "label": "Nama",   "required": true },
+    { "type": "email",    "name": "email",  "label": "Email",  "required": true },
+    { "type": "textarea", "name": "pesan",  "label": "Pesan",  "required": true }
+  ],
+  "settings": {
+    "redirectUrl": "https://situsanda.com/terima-kasih",
+    "botProtection": true
+  }
+}
+```
+
+### Submission
+
+| Method | URL | Auth | Deskripsi |
+| --- | --- | --- | --- |
+| `POST` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions` | Public key | Submit data ke form |
+| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions?limit=&cursor=` | Secret key | List submission untuk form ini |
+| `GET` | `api.sawala.cloud/public/formulir/submissions/{id}` | Secret key | Ambil satu submission |
+
+Submit body adalah JSON object dengan key sesuai `name` di field definition:
+
+```json
+{
+  "nama":  "Budi Santoso",
+  "email": "budi@example.com",
+  "pesan": "Halo, saya tertarik dengan produk Anda."
+}
+```
+
+Response submit:
+
+```json
+{
+  "id":     "sub_xyz789",
+  "status": "received"
+}
+```
+
+## File upload field
+
+Untuk field bertipe `file`, alur submit-nya dua langkah:
+
+1. Upload file dulu ke endpoint upload Formulir (sama seperti [presigned upload Berkasna](/id/docs/berkasna/tutorial-first-upload)), dapat `assetId`.
+2. Kirim submission dengan `assetId` sebagai nilai field tersebut.
+
+## Embed URLs (formulir.id)
+
+| URL | Otentikasi | Deskripsi |
+| --- | --- | --- |
+| `formulir.id/embed/{slug}` | Public (slug saja) | Form iframe-embeddable; HTML siap pasang |
+| `formulir.id/formulir.js` | Public | Script untuk pola embed `<script>` |
+
+Embed URLs tidak menerima `X-API-Key` header. Otorisasinya implisit via slug — slug bersifat publik dan tidak rahasia. Untuk membatasi siapa yang boleh submit, gunakan fitur **proteksi bot** di settings form.
+
+## Error codes
+
+| HTTP | Penyebab |
+| --- | --- |
+| `400` | Field wajib tidak diisi, atau format nilai field salah (misal email tidak valid) |
+| `401` | API key salah atau hilang (Public API) |
+| `403` | Token tidak punya akses form ini |
+| `404` | Form tidak ditemukan |
+| `422` | Validasi field gagal — body response memuat detail error per field |
+| `429` | Rate limit terlampaui |
+
+### Format error 422
+
+```json
+{
+  "error":  "validation_failed",
+  "fields": {
+    "email": "Format email tidak valid",
+    "pesan": "Wajib diisi"
+  }
+}
+```
+
+## Rate limit
+
+- **Submit (`POST`):** 30 submission per menit per IP per form.
+- **List/get submission (Public API):** 100 request per menit per API key.
+
+Hubungi tim Sawala untuk menaikkan limit jika Anda butuh lebih.

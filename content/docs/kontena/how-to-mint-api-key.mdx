@@ -1,0 +1,54 @@
+---
+title: Cara mint API key Kontena
+description: Lima langkah untuk membuat public atau secret key Kontena dari dashboard, plus pedoman rotasi dan scope.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+API key Kontena adalah token jangka panjang yang dipakai aplikasi Anda untuk mengakses API.
+
+- **Public key (`pk_live_…`)** — read-only. Aman dipakai dari sisi browser/client.
+- **Secret key (`sk_live_…`)** — read/write. Hanya untuk dipakai dari sisi server. Jangan pernah bocor ke kode frontend.
+
+## Langkah-langkah
+
+1. Buka **Pengaturan Organisasi → API Keys** di dashboard.
+2. Klik **Buat Key**.
+3. Pilih:
+   - **Tipe:** Public atau Secret
+   - **Scope:** project yang boleh diakses key ini (satu, beberapa, atau semua project di organisasi Anda)
+   - **Produk:** Kontena
+4. Klik **Buat**. Token akan muncul dalam dialog.
+5. Salin token tersebut. **Token hanya muncul satu kali** — jika hilang, Anda harus membuat key baru. Simpan di password manager atau secret store milik tim Anda.
+
+Cara memakai token di kode:
+
+```bash
+KONTENA_PUBLIC_TOKEN=pk_live_xxx
+```
+
+Lalu kirim sebagai header pada setiap request:
+
+```
+X-API-Key: pk_live_xxx
+```
+
+<Callout type="warn">
+**Token bocor?** Buka kembali halaman API Keys, cari token tersebut di tabel, dan klik **Revoke**. Token yang dicabut akan ditolak oleh API dari detik berikutnya. Lalu buat key baru dengan scope yang sama.
+</Callout>
+
+## Pedoman rotasi
+
+- Rotasi setiap 90 hari untuk secret key (untuk public key opsional, karena sifatnya read-only).
+- Rotasi segera jika ada perubahan tim — contoh: anggota tim yang tahu token tersebut keluar dari organisasi.
+- Saat rotasi: buat key baru, deploy aplikasi dengan key baru, baru cabut key lama. Urutan ini menghindari downtime.
+
+## Troubleshooting
+
+| Error | Penyebab umum | Solusi |
+| --- | --- | --- |
+| `401 Unauthorized` | Header salah | Pastikan header-nya `X-API-Key: <token>`, **bukan** `Authorization: Bearer <token>` |
+| `403 Forbidden` | Token valid tapi tidak punya akses project ini | Buat key baru dengan scope project yang benar |
+| `429 Too Many Requests` | Melebihi rate limit (lihat referensi API) | Tambahkan caching di sisi aplikasi, atau hubungi tim Sawala untuk menaikkan limit |
+
+Untuk daftar lengkap endpoint dan response, lihat [referensi API](/id/docs/kontena/reference/api).

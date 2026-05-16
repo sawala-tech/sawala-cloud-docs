@@ -1,0 +1,108 @@
+---
+title: Berkasna API Reference
+description: Berkasna's public REST API — upload, listing, and asset metadata endpoints.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate** — Indonesian source at [`api.mdx`](./api.mdx).
+
+<Callout type="info">
+An interactive OpenAPI renderer will be added once the public spec is exposed.
+</Callout>
+
+## Base URL
+
+```
+https://api.sawala.cloud/public/berkasna
+```
+
+## Required header
+
+```
+X-API-Key: <pk_live_… or sk_live_…>
+```
+
+Upload endpoints require a secret key; list/get asset endpoints accept a public key.
+
+## Endpoints
+
+### Upload
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/upload/check-duplicate?hash={sha256}` | Public | Check if an asset with this hash already exists |
+| `POST` | `/upload/presigned` | Secret | Request an upload slot (presigned URL) |
+| `POST` | `/upload/complete` | Secret | Mark upload complete |
+
+### Assets
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/assets?limit=&cursor=&mimeCategory=` | Public | List project assets |
+| `GET` | `/assets/{id}` | Public | Fetch one asset with metadata |
+
+## `POST /upload/presigned` body
+
+```json
+{ "filename": "hero.jpg", "mimeType": "image/jpeg", "size": 523456 }
+```
+
+Response:
+
+```json
+{
+  "assetId":   "ast_abc123",
+  "r2Key":     "uploads/2026/05/hero.jpg",
+  "uploadUrl": "https://upload.sawala.cloud/...?X-Amz-Signature=...",
+  "expiresAt": "2026-05-16T10:30:00Z"
+}
+```
+
+`uploadUrl` is valid for ~15 minutes.
+
+## Asset model
+
+```json
+{
+  "id":        "ast_abc123",
+  "filename":  "hero.jpg",
+  "mimeType":  "image/jpeg",
+  "size":      523456,
+  "status":    "completed",
+  "url":       "https://files.sawala.cloud/proj_xxx/uploads/2026/05/hero.jpg",
+  "title":     null,
+  "alt":       null,
+  "tags":      [],
+  "width":     1920,
+  "height":    1080,
+  "createdAt": "2026-05-16T10:25:00Z"
+}
+```
+
+(Translate the surrounding prose.)
+
+## Listing query parameters
+
+| Param | Values | Description |
+| --- | --- | --- |
+| `limit` | integer (default 20, max 100) | Assets per page |
+| `cursor` | string | Cursor for the next page |
+| `mimeCategory` | `image`, `video`, `pdf`, `document` | Filter by category |
+
+## Limits
+
+- **Max file size:** 200 MB
+- **Accepted MIME types:** `image/*`, `video/mp4`, `video/webm`, `video/quicktime`, `application/pdf`, Office docs
+- **Upload rate limit:** 60 `presigned` requests/min per API key
+
+## Error codes
+
+| HTTP | Cause |
+| --- | --- |
+| `400` | Invalid body, unsupported MIME, file > 200 MB |
+| `401` | Wrong/missing API key |
+| `403` | Token has no access, or public key used for a secret-only endpoint |
+| `404` | Asset not found |
+| `409` | `complete` called before file was PUT |
+| `429` | Rate limit exceeded |

@@ -1,0 +1,108 @@
+---
+title: Referensi API Kontena
+description: REST API publik Kontena — semua endpoint, parameter, dan header yang Anda butuhkan untuk membaca konten.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+<Callout type="info">
+Renderer OpenAPI interaktif akan ditambahkan di sini ketika spec publik tersedia. Sementara ini, halaman menyajikan ringkasan endpoint dalam tabel.
+</Callout>
+
+## Base URL
+
+```
+https://api.sawala.cloud/public/kontena
+```
+
+Semua endpoint di bawah ini relatif terhadap base URL ini.
+
+## Header wajib
+
+```
+X-API-Key: pk_live_xxx
+```
+
+Public key (`pk_live_…`) cukup untuk semua endpoint read di halaman ini. Lihat [cara mint API key](/id/docs/kontena/how-to-mint-api-key) untuk mendapatkan token.
+
+## Endpoint
+
+### Koleksi (multiple entries)
+
+| Method | Path | Deskripsi |
+| --- | --- | --- |
+| `GET` | `/projects/{projId}/content/collection/{schemaSlug}` | List entri di sebuah koleksi |
+| `GET` | `/projects/{projId}/content/collection/{schemaSlug}/{id}` | Ambil satu entri berdasarkan ID |
+
+### Single (one entry per locale)
+
+| Method | Path | Deskripsi |
+| --- | --- | --- |
+| `GET` | `/projects/{projId}/content/single/{schemaSlug}` | Ambil entri singleton |
+
+### Skema
+
+| Method | Path | Deskripsi |
+| --- | --- | --- |
+| `GET` | `/projects/{projId}/schemas` | List semua skema di project |
+| `GET` | `/projects/{projId}/schemas/{schemaId}` | Ambil definisi satu skema |
+
+## Query parameters
+
+Semua endpoint `list` dan `get` menerima parameter berikut:
+
+| Param | Nilai | Deskripsi |
+| --- | --- | --- |
+| `locale` | `id`, `en`, … | Filter berdasarkan locale entri |
+| `q` | string | Substring filter pada `title` dan `slug` (pencarian) |
+| `publicationState` | `live` (default), `preview` | `live` hanya entri yang sudah dipublish. `preview` membutuhkan secret key |
+| `limit` | integer (default 20, max 100) | Jumlah entri per halaman |
+| `cursor` | string | Cursor untuk halaman berikutnya (dari `meta.pagination.nextCursor` di response sebelumnya) |
+
+## Format response
+
+Response berbentuk JSON dengan struktur:
+
+```json
+{
+  "items": [
+    {
+      "id":        "ent_abc",
+      "slug":      "halo-dunia",
+      "title":     "Halo Dunia",
+      "locale":    "id",
+      "status":    "published",
+      "createdAt": "2026-05-01T10:00:00Z",
+      "updatedAt": "2026-05-01T10:30:00Z",
+      "data":      { "body": "<p>...</p>", "coverImage": { "url": "https://..." } }
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "limit":      20,
+      "hasMore":    true,
+      "nextCursor": "ZW50X3h5eg"
+    }
+  }
+}
+```
+
+Field `data` berisi semua field yang Anda definisikan di skema.
+
+## Error codes
+
+| HTTP | Body | Penyebab |
+| --- | --- | --- |
+| `400` | `{ "error": "..." }` | Parameter atau body tidak valid |
+| `401` | `{ "error": "unauthorized" }` | Header `X-API-Key` salah atau hilang |
+| `403` | `{ "error": "forbidden" }` | Token tidak punya akses project ini |
+| `404` | `{ "error": "not found" }` | Entri / skema / project tidak ditemukan |
+| `429` | `{ "error": "rate limit exceeded" }` | Terlalu banyak request, tambahkan caching |
+
+## Pagination
+
+Pagination berbasis cursor: ambil `meta.pagination.nextCursor` dari response, lalu kirim sebagai `cursor=...` di request berikutnya. `meta.pagination.hasMore` akan `false` di halaman terakhir.
+
+## Rate limit
+
+Default: 100 request per menit per API key. Hubungi tim Sawala untuk menaikkan limit jika Anda butuh lebih.

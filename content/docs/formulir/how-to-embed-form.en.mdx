@@ -1,0 +1,76 @@
+---
+title: How to embed a form
+description: Two ways to embed a Formulir form on your site — one-line iframe or React component. When to pick which.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate** — Indonesian source at [`how-to-embed-form.mdx`](./how-to-embed-form.mdx).
+
+Formulir supports two embed modes. Pick by integration need.
+
+## Comparison
+
+| | iframe | React component |
+| --- | --- | --- |
+| Setup | Paste one HTML tag | `npm install @sawala/formulir-react` |
+| Style | Isolated from your site | Inherits your site's CSS |
+| Fits | Any site (WordPress, Webflow, static HTML) | React apps (Next.js, Vite, CRA) |
+| Sandbox | Cross-origin sandbox | Inline, full app context |
+| Custom validation | No | Yes, via props/hooks |
+
+## iframe embed
+
+```html
+<iframe
+  src="https://formulir.id/embed/your-form-slug"
+  style="width: 100%; height: 600px; border: 0;"
+  loading="lazy"
+  title="Contact us"
+></iframe>
+```
+
+(Translate the auto-resize and accent customization sections.)
+
+## React component
+
+```bash
+npm install @sawala/formulir-react
+```
+
+```tsx
+import { FormulirForm } from '@sawala/formulir-react';
+
+export default function ContactPage() {
+  return (
+    <FormulirForm
+      slug="contact-us"
+      onSubmit={(submission) => console.log(submission)}
+    />
+  );
+}
+```
+
+### Available props
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `slug` | `string` | Form slug (required) |
+| `onSubmit` | `(submission) => void` | Called after a successful submission |
+| `onError` | `(error) => void` | Called when submission fails |
+| `className` | `string` | Wrapper CSS class |
+| `initialValues` | `Record<string, any>` | Pre-fill field values |
+| `disabled` | `boolean` | Disable the entire form |
+
+<Callout type="info">
+Deep style customization (font, sizing, layout) is only available via the React component, not the iframe.
+</Callout>
+
+## Managing CSP
+
+If your site uses a strict Content Security Policy:
+
+```
+Content-Security-Policy: frame-src https://formulir.id
+Content-Security-Policy: connect-src https://api.sawala.cloud
+```

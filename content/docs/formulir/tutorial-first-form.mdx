@@ -1,0 +1,88 @@
+---
+title: Tutorial — Form pertama dengan Formulir
+description: Buat form kontak, tempel di situs Anda, dan terima submission pertama — dalam 15 menit.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Tutorial ini menunjukkan cara membuat form kontak sederhana di Formulir, menempelnya di situs Anda, dan menerima submission pertama.
+
+<Callout type="info">
+**Prasyarat.** Akun Sawala Cloud aktif dan satu project di dalamnya.
+</Callout>
+
+<Steps>
+
+<Step>
+
+### Buat form di dashboard
+
+Buka dashboard Formulir, klik **Buat Form**, dan isi:
+
+- **Nama:** `Kontak Kami`
+- **Slug:** `kontak-kami` (otomatis dari nama)
+
+Tambahkan empat field:
+
+| Tipe | Label | Wajib |
+| --- | --- | --- |
+| Text | Nama | ✓ |
+| Email | Email | ✓ |
+| Text | Subjek | — |
+| Textarea | Pesan | ✓ |
+
+Di tab **Settings**, isi:
+
+- **Redirect URL setelah submit:** `https://situsanda.com/terima-kasih`
+- **Aktifkan proteksi bot:** ✓
+
+Klik **Simpan & Publish**.
+
+</Step>
+
+<Step>
+
+### Tempel form di situs Anda
+
+Cara paling cepat adalah dengan iframe. Salin tag berikut ke halaman HTML mana pun di situs Anda (ganti `slug` dengan slug form Anda):
+
+```html
+<iframe
+  src="https://formulir.id/embed/kontak-kami"
+  style="width: 100%; height: 600px; border: 0;"
+  loading="lazy"
+></iframe>
+```
+
+Buka halaman tersebut di browser — form akan muncul di dalam iframe.
+
+Untuk integrasi yang lebih dalam (form di-render di DOM situs Anda, bukan di iframe), lihat [cara embed form](/id/docs/formulir/how-to-embed-form).
+
+</Step>
+
+<Step>
+
+### Submit test
+
+Isi form yang sudah ter-embed di situs Anda dan klik **Kirim**. Browser akan ter-redirect ke `https://situsanda.com/terima-kasih`.
+
+</Step>
+
+<Step>
+
+### Lihat submission di dashboard
+
+Kembali ke dashboard Formulir, pilih form `Kontak Kami`, buka tab **Submissions**. Submission test Anda akan muncul di list, dengan timestamp dan isi field yang Anda isi tadi.
+
+Setiap submission juga dapat diekspor ke CSV — klik **Export** di pojok kanan atas tabel.
+
+</Step>
+
+</Steps>
+
+## Langkah selanjutnya
+
+- Pelajari [cara embed form](/id/docs/formulir/how-to-embed-form) — iframe vs React component, kapan pakai yang mana.
+- Lihat [referensi API](/id/docs/formulir/reference/api) untuk mengambil submission programmatically.
+- Aktifkan webhook supaya tiap submission baru juga dikirim ke endpoint Anda (di tab **Settings** form).

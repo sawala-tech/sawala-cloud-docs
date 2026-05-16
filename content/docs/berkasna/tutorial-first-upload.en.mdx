@@ -1,0 +1,77 @@
+---
+title: Tutorial — Your first upload with Berkasna
+description: Implement the presigned-upload flow — request slot, PUT from the browser, complete — in 10 minutes.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+> **TODO: translate** — Indonesian source at [`tutorial-first-upload.mdx`](./tutorial-first-upload.mdx).
+
+This tutorial shows how to accept a file upload from your app's user and store it in Berkasna.
+
+<Callout type="info">
+**Prerequisite.** A Berkasna API key. See [how to mint an API key](/en/docs/kontena/how-to-mint-api-key) — the flow is the same.
+</Callout>
+
+<Steps>
+
+<Step>
+
+### Request an upload slot
+
+(Translate.)
+
+```bash
+curl -X POST \
+  -H "X-API-Key: sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{"filename":"hero.jpg","mimeType":"image/jpeg","size":523456}' \
+  "https://api.sawala.cloud/public/berkasna/upload/presigned"
+```
+
+</Step>
+
+<Step>
+
+### PUT the file from the browser
+
+(Translate.)
+
+```js
+async function uploadToBerkasna(file, uploadUrl) {
+  const res = await fetch(uploadUrl, {
+    method:  'PUT',
+    headers: { 'Content-Type': file.type },
+    body:    file,
+  });
+  if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+}
+```
+
+</Step>
+
+<Step>
+
+### Tell Berkasna the upload completed
+
+(Translate.)
+
+```bash
+curl -X POST \
+  -H "X-API-Key: sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{"assetId":"ast_abc123"}' \
+  "https://api.sawala.cloud/public/berkasna/upload/complete"
+```
+
+</Step>
+
+</Steps>
+
+## Next steps
+
+- Add deduplication: check `/upload/check-duplicate?hash=...` before requesting a slot.
+- See [how to upload a public file](/en/docs/berkasna/how-to-upload-public-file).
+- Read the [API reference](/en/docs/berkasna/reference/api).

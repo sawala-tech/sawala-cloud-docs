@@ -1,0 +1,40 @@
+---
+title: Apa itu Berkasna
+description: Berkasna adalah produk pengelolaan berkas dan media Sawala Cloud — gambar, video, dokumen — yang siap dipakai dari aplikasi Anda.
+---
+
+**Berkasna** adalah produk pengelolaan **berkas dan media** Sawala Cloud. Operator mengunggah aset (gambar, video, PDF, dokumen Office) lewat dashboard, lalu aplikasi Anda mengaksesnya via URL publik atau API.
+
+## Kapan memilih Berkasna
+
+- Aplikasi Anda butuh menyimpan file yang diunggah pengguna (avatar, attachment, gambar postingan).
+- Tim editorial perlu mengelola library aset yang dipakai di banyak halaman — gambar hero, dokumen unduhan, video latar.
+- Anda butuh upload dari browser **langsung ke storage** tanpa membebani server aplikasi Anda.
+
+## Konsep inti
+
+- **Asset** — satu file beserta metadata-nya: nama, MIME type, ukuran, URL publik, plus field opsional `title`, `description`, `alt`, dan `tags`.
+- **Presigned upload** — alur upload dua langkah di mana browser meng-upload langsung ke storage. Server aplikasi Anda tidak pernah memegang isi file, hanya mintainstruksi upload.
+- **MIME categories** — Berkasna mengkategorikan aset jadi `image`, `video`, `pdf`, dan `document` untuk filtering di dashboard.
+
+## Integrasi dengan Kontena
+
+Field bertipe `media` di skema [Kontena](/id/docs/kontena/what-is-kontena) terhubung langsung ke Berkasna. Editor yang sedang mengisi entri konten bisa memilih aset yang sudah ada atau mengunggah yang baru tanpa keluar dari form.
+
+## Batasan
+
+- **Ukuran maksimum:** 200 MB per file.
+- **MIME types diterima:** semua `image/*`, video (`mp4`, `webm`, `quicktime`), PDF, dokumen Office (Word, Excel, PowerPoint).
+- **Listing pagination:** cursor-based, default 20 per halaman, max 100.
+
+## Alur upload
+
+Berkasna menggunakan **presigned URL** untuk menghindari routing file besar lewat server aplikasi Anda:
+
+1. Aplikasi minta upload slot ke Berkasna → dapat `assetId` + `uploadUrl`.
+2. Browser meng-upload file via HTTP PUT langsung ke `uploadUrl`.
+3. Aplikasi memberitahu Berkasna bahwa upload selesai → asset berstatus `completed` dan punya URL publik.
+
+Optional: cek dulu apakah file dengan hash yang sama sudah ada (deduplikasi) sebelum minta slot baru.
+
+Lanjut ke [tutorial upload pertama](/id/docs/berkasna/tutorial-first-upload) untuk implementasi alur ini.

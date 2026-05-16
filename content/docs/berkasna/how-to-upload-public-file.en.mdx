@@ -1,0 +1,37 @@
+---
+title: How to upload a public file
+description: The minimal upload-and-share pattern — three API calls, one public URL ready to use.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate** — Indonesian source at [`how-to-upload-public-file.mdx`](./how-to-upload-public-file.mdx).
+
+When you need to accept a user upload, store it in Berkasna, and immediately get back a public URL — use the three-call pattern below.
+
+## Steps
+
+1. **Request an upload slot** from your app (server-side, secret key):
+
+   ```bash
+   POST https://api.sawala.cloud/public/berkasna/upload/presigned
+   X-API-Key: sk_live_xxx
+   ```
+
+2. **PUT the file to `uploadUrl`** from the browser.
+
+3. **Mark complete** from your app server.
+
+(Translate full explanation.)
+
+<Callout type="warn">
+**`uploadUrl` expires in ~15 minutes.** Request a new slot if the user is slow.
+</Callout>
+
+## Client-side validation
+
+(Translate.)
+
+## Deduplication
+
+Compute a SHA-256 of the file in the browser and check `/upload/check-duplicate?hash=...` before requesting a slot.
