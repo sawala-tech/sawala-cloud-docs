@@ -1,4 +1,4 @@
-export const appName = 'Sawala Cloud Docs';
+export const appName = 'Sawala Cloud — Docs';
 export const docsRoute = '/docs';
 export const docsImageRoute = '/og/docs';
 export const docsContentRoute = '/llms.mdx/docs';
