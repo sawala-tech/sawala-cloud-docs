@@ -1,0 +1,90 @@
+---
+title: Tutorial — Your first blog with Kontena
+description: Zero to a blog reading from Kontena in 15 minutes — schema, API key, fetch code.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+> **TODO: translate** — Indonesian source at [`tutorial-first-blog.mdx`](./tutorial-first-blog.mdx). Translators: render the steps below into English.
+
+This tutorial takes you from zero to a blog reading from Kontena in **15 minutes**.
+
+<Callout type="info">
+**Prerequisite.** An active Sawala Cloud account and one project. Sign up free at [sawala.cloud](https://sawala.cloud).
+</Callout>
+
+<Steps>
+
+<Step>
+
+### Create a `post` schema
+
+(Translate the Indonesian source steps.)
+
+</Step>
+
+<Step>
+
+### Add one entry
+
+(Translate.)
+
+</Step>
+
+<Step>
+
+### Mint a public API key
+
+(Translate.)
+
+</Step>
+
+<Step>
+
+### Fetch from code
+
+Code samples are language-neutral:
+
+<Tabs items={['curl', 'fetch (vanilla)', '@sawala/kontena-client']}>
+<Tab value="curl">
+```bash
+curl -H "X-API-Key: pk_live_xxx" \
+  "https://api.sawala.cloud/public/kontena/projects/proj_xxx/content/collection/post?locale=en"
+```
+</Tab>
+<Tab value="fetch (vanilla)">
+```js
+const res = await fetch(
+  'https://api.sawala.cloud/public/kontena/projects/proj_xxx/content/collection/post?locale=en',
+  { headers: { 'X-API-Key': 'pk_live_xxx' } }
+);
+const { items } = await res.json();
+```
+</Tab>
+<Tab value="@sawala/kontena-client">
+```ts
+import { createKontenaClient } from '@sawala/kontena-client';
+
+const kontena = createKontenaClient({
+  baseUrl:     'https://api.sawala.cloud/public/kontena',
+  projectId:   'proj_xxx',
+  publicToken: 'pk_live_xxx',
+});
+
+interface Post { title: string; body: string }
+const { items } = await kontena.listCollection<Post>('post', { locale: 'en' });
+```
+</Tab>
+</Tabs>
+
+</Step>
+
+</Steps>
+
+## Next steps
+
+- Add an `id` locale to the same schema and publish the Indonesian variant.
+- Read [how to mint an API key](/en/docs/kontena/how-to-mint-api-key) for the full public-vs-secret model.
+- See the [API reference](/en/docs/kontena/reference/api) for every endpoint and parameter.

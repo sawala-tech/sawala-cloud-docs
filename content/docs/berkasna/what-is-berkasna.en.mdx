@@ -1,0 +1,34 @@
+---
+title: What is Berkasna
+description: Berkasna is Sawala Cloud's file and media management product — images, video, documents — ready to use from your app.
+---
+
+> **TODO: translate** — Indonesian source at [`what-is-berkasna.mdx`](./what-is-berkasna.mdx).
+
+**Berkasna** is Sawala Cloud's **file and media management** product. Operators upload assets (images, video, PDFs, Office documents) through the dashboard; your app accesses them by public URL or API.
+
+## When to choose Berkasna
+
+(Translate.)
+
+## Core concepts
+
+- **Asset** — one file plus metadata: name, MIME type, size, public URL, optional `title` / `description` / `alt` / `tags`.
+- **Presigned upload** — two-step flow: browser uploads directly to storage; your app server never holds the file bytes.
+- **MIME categories** — `image`, `video`, `pdf`, `document` for dashboard filtering.
+
+## Integration with Kontena
+
+Schema fields of type `media` in [Kontena](/en/docs/kontena/what-is-kontena) are wired directly to Berkasna.
+
+## Limits
+
+- **Max file size:** 200 MB.
+- **Accepted MIME types:** all `image/*`, video (`mp4`, `webm`, `quicktime`), PDF, Office documents (Word, Excel, PowerPoint).
+- **Listing pagination:** cursor-based; default 20/page, max 100.
+
+## Upload flow
+
+(Translate the 3-step presigned URL flow.)
+
+Continue to the [first upload tutorial](/en/docs/berkasna/tutorial-first-upload).

@@ -1,0 +1,116 @@
+---
+title: Referensi API Berkasna
+description: REST API publik Berkasna — endpoint upload, listing, dan asset metadata.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+<Callout type="info">
+Renderer OpenAPI interaktif akan ditambahkan ketika spec publik tersedia.
+</Callout>
+
+## Base URL
+
+```
+https://api.sawala.cloud/public/berkasna
+```
+
+## Header wajib
+
+```
+X-API-Key: <pk_live_… atau sk_live_…>
+```
+
+Endpoint **upload** memerlukan secret key (`sk_live_…`); endpoint **list/get asset** menerima public key.
+
+## Endpoint
+
+### Upload
+
+| Method | Path | Auth | Deskripsi |
+| --- | --- | --- | --- |
+| `GET` | `/upload/check-duplicate?hash={sha256}` | Public | Cek apakah aset dengan hash tersebut sudah ada |
+| `POST` | `/upload/presigned` | Secret | Minta slot upload (presigned URL) |
+| `POST` | `/upload/complete` | Secret | Tandai upload selesai |
+
+### Assets
+
+| Method | Path | Auth | Deskripsi |
+| --- | --- | --- | --- |
+| `GET` | `/assets?limit=&cursor=&mimeCategory=` | Public | List aset di project |
+| `GET` | `/assets/{id}` | Public | Ambil satu aset beserta metadata-nya |
+
+## Request body — `POST /upload/presigned`
+
+```json
+{
+  "filename": "hero.jpg",
+  "mimeType": "image/jpeg",
+  "size":     523456
+}
+```
+
+Response:
+
+```json
+{
+  "assetId":   "ast_abc123",
+  "r2Key":     "uploads/2026/05/hero.jpg",
+  "uploadUrl": "https://upload.sawala.cloud/...?X-Amz-Signature=...",
+  "expiresAt": "2026-05-16T10:30:00Z"
+}
+```
+
+`uploadUrl` berlaku ~15 menit. Setelah expired, minta slot baru.
+
+## Asset model
+
+```json
+{
+  "id":          "ast_abc123",
+  "orgId":       "org_xxx",
+  "filename":    "hero.jpg",
+  "mimeType":    "image/jpeg",
+  "size":        523456,
+  "r2Key":       "uploads/2026/05/hero.jpg",
+  "status":      "completed",
+  "url":         "https://files.sawala.cloud/proj_xxx/uploads/2026/05/hero.jpg",
+  "title":       null,
+  "description": null,
+  "alt":         null,
+  "tags":        [],
+  "width":       1920,
+  "height":      1080,
+  "createdAt":   "2026-05-16T10:25:00Z",
+  "updatedAt":   "2026-05-16T10:25:00Z"
+}
+```
+
+Field `status` bernilai `pending` (slot diminta, belum ada PUT), `completed` (sudah di-PUT dan dikonfirmasi), atau `deleted`.
+
+`width` dan `height` hanya tersedia untuk image dan video.
+
+## Query parameters — listing
+
+| Param | Nilai | Deskripsi |
+| --- | --- | --- |
+| `limit` | integer (default 20, max 100) | Aset per halaman |
+| `cursor` | string | Cursor untuk halaman berikutnya |
+| `mimeCategory` | `image`, `video`, `pdf`, `document` | Filter berdasarkan kategori |
+
+## Batasan
+
+- **Ukuran file maksimum:** 200 MB
+- **MIME types diterima:** `image/*`, `video/mp4`, `video/webm`, `video/quicktime`, `application/pdf`, dokumen Office (Word, Excel, PowerPoint)
+- **Rate limit upload:** 60 request `presigned` per menit per API key
+
+## Error codes
+
+| HTTP | Penyebab |
+| --- | --- |
+| `400` | Body tidak valid, MIME type tidak didukung, atau ukuran melebihi 200 MB |
+| `401` | API key salah atau hilang |
+| `403` | Token tidak punya akses project, atau public key dipakai untuk endpoint yang butuh secret |
+| `404` | Aset tidak ditemukan |
+| `409` | `POST /upload/complete` dipanggil sebelum file ter-PUT |
+| `429` | Rate limit terlampaui |

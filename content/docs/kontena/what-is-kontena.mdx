@@ -1,0 +1,36 @@
+---
+title: Apa itu Kontena
+description: Kontena adalah headless CMS Sawala Cloud — pengenalan singkat, kapan dipakai, dan apa bedanya dengan CMS lain.
+---
+
+**Kontena** adalah _headless CMS_ — Content Management System tanpa tampilan bawaan — yang menjadi bagian dari platform Sawala Cloud. Editor mendefinisikan _skema_ (struktur konten — misalnya skema `post` dengan field `title`, `body`, dan `coverImage`), lalu mengisi _entri_ ke dalamnya. Setiap entri dapat dibaca lewat REST API publik dari sisi mana pun: situs Next.js, aplikasi mobile, atau bahkan dari spreadsheet.
+
+## Kapan memilih Kontena
+
+Pilih Kontena ketika tim Anda perlu memisahkan **konten** dari **tampilan**:
+
+- Tim editorial mengelola berita, artikel, atau halaman di dashboard Sawala Cloud — tanpa harus menyentuh kode.
+- Tim frontend membangun situs publik dengan framework apa pun (Next.js, Nuxt, Astro, atau HTML murni) dan mengambil data dari Kontena via API.
+
+Kasus penggunaan yang cocok: blog perusahaan, dokumentasi produk yang sering berubah, katalog konten multi-bahasa, dan situs landing yang isinya diperbarui rutin oleh non-engineer.
+
+## Konsep inti
+
+- **Skema** — struktur konten. Mirip "Content Type" di Contentful atau "Custom Post Type" di WordPress. Anda mendefinisikan field-field yang membentuk satu entri.
+- **Koleksi** — banyak entri per skema. Contoh: skema `post` berisi banyak artikel.
+- **Single** — satu entri per locale per skema. Contoh: `homepage` atau `site-settings`.
+- **API key publik** — token read-only untuk dipakai dari sisi klien (frontend). Kontena juga mendukung secret key untuk operasi read/write dari sisi server.
+
+## Field types
+
+Kontena mendukung 14 jenis field: `text`, `richtext`, `markdown`, `number`, `boolean`, `date`, `select`, `multiselect`, `relation`, `media`, `json`, `repeater`, `blocks`, dan `component`. Field `media` terintegrasi dengan [Berkasna](/id/docs/berkasna/what-is-berkasna) untuk upload dan pengelolaan aset.
+
+## Status publikasi
+
+Setiap entri memiliki status `draft` atau `published`. Saat memanggil API publik, gunakan query parameter `publicationState=live` untuk hanya mengambil entri yang sudah diterbitkan, atau `publicationState=preview` (dengan secret key) untuk juga melihat draft.
+
+## Multi-bahasa
+
+Skema `single` menyimpan satu entri per locale — misalnya satu `homepage` versi Indonesia dan satu versi Inggris. Skema `collection` menggunakan parameter `locale` untuk memfilter entri berdasarkan bahasa.
+
+Lanjut ke [tutorial pertama](/id/docs/kontena/tutorial-first-blog) untuk membangun blog Anda dalam 15 menit.

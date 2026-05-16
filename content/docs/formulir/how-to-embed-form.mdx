@@ -1,0 +1,128 @@
+---
+title: Cara embed form
+description: Dua cara menempel form Formulir di situs Anda — iframe satu baris atau komponen React. Kapan pakai yang mana.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Formulir mendukung dua pola embed yang sengaja berbeda. Pilih sesuai kebutuhan integrasi Anda.
+
+## Bandingan singkat
+
+| | iframe | React component |
+| --- | --- | --- |
+| Setup | Salin satu tag HTML | `npm install @sawala/formulir-react` |
+| Style | Isolated dari situs Anda | Mengikuti style situs Anda |
+| Cocok untuk | Situs apa pun (WordPress, Webflow, static HTML) | Aplikasi React (Next.js, Vite, CRA) |
+| Cross-origin | Sandboxed (lebih aman) | Inline (akses ke state app) |
+| Custom validation tambahan | Tidak | Ya, via props/hooks |
+
+## iframe embed
+
+Satu tag HTML, dapat dipakai di situs mana pun yang membolehkan iframe.
+
+```html
+<iframe
+  src="https://formulir.id/embed/your-form-slug"
+  style="width: 100%; height: 600px; border: 0;"
+  loading="lazy"
+  title="Hubungi kami"
+></iframe>
+```
+
+Ganti `your-form-slug` dengan slug form Anda (dapat dilihat di dashboard).
+
+### Auto-resize tinggi iframe
+
+iframe memerlukan tinggi tetap (di atas saya pakai `600px`). Untuk auto-resize sesuai isi form, tambahkan skrip kecil:
+
+```html
+<iframe
+  id="formulir-frame"
+  src="https://formulir.id/embed/your-form-slug"
+  style="width: 100%; border: 0;"
+  loading="lazy"
+></iframe>
+
+<script>
+  window.addEventListener('message', (e) => {
+    if (e.origin !== 'https://formulir.id') return;
+    if (e.data?.type === 'formulir:resize') {
+      document.getElementById('formulir-frame').style.height = e.data.height + 'px';
+    }
+  });
+</script>
+```
+
+Iframe mengirim event `formulir:resize` setiap kali tingginya berubah (misalnya saat field error muncul).
+
+## React component
+
+Untuk situs React, install package dan import komponennya:
+
+```bash
+npm install @sawala/formulir-react
+```
+
+```tsx
+import { FormulirForm } from '@sawala/formulir-react';
+
+export default function ContactPage() {
+  return (
+    <div className="max-w-xl mx-auto">
+      <h1>Hubungi Kami</h1>
+      <FormulirForm
+        slug="kontak-kami"
+        onSubmit={(submission) => {
+          console.log('Submitted:', submission);
+        }}
+        onError={(error) => {
+          console.error('Submission failed:', error);
+        }}
+      />
+    </div>
+  );
+}
+```
+
+Form di-render langsung di DOM Anda — style situs (termasuk Tailwind, CSS modules, atau styled-components) berlaku.
+
+### Props yang tersedia
+
+| Prop | Tipe | Deskripsi |
+| --- | --- | --- |
+| `slug` | `string` | Slug form (wajib) |
+| `onSubmit` | `(submission) => void` | Dipanggil setelah submission sukses |
+| `onError` | `(error) => void` | Dipanggil saat submission gagal |
+| `className` | `string` | Class CSS untuk wrapper |
+| `initialValues` | `Record<string, any>` | Nilai awal field-field |
+| `disabled` | `boolean` | Disable seluruh form |
+
+## Kustomisasi style (iframe)
+
+iframe punya tema bawaan. Untuk override warna utama, tambahkan parameter `?accent=#hexcode` ke URL embed:
+
+```html
+<iframe src="https://formulir.id/embed/your-form-slug?accent=%232563eb" ...></iframe>
+```
+
+(Note: `#` di URL harus di-encode sebagai `%23`.)
+
+<Callout type="info">
+Style kustom yang lebih dalam (font family, ukuran, layout) hanya tersedia di React component, bukan iframe. Pilih React component jika Anda butuh form yang benar-benar match dengan brand situs Anda.
+</Callout>
+
+## Mengelola CSP
+
+Jika situs Anda memakai Content Security Policy ketat, izinkan iframe ke `formulir.id`:
+
+```
+Content-Security-Policy: frame-src https://formulir.id
+```
+
+Untuk React component, package `@sawala/formulir-react` melakukan fetch ke `https://api.sawala.cloud/public/formulir`, jadi izinkan host tersebut di `connect-src`:
+
+```
+Content-Security-Policy: connect-src https://api.sawala.cloud
+```

@@ -1,0 +1,37 @@
+---
+title: Apa itu Formulir
+description: Formulir adalah pembangun form Sawala Cloud — buat, tempel di situs Anda, dan kumpulkan submission, semua tanpa kode.
+---
+
+**Formulir** adalah pembangun form Sawala Cloud. Anda mendefinisikan field-field (text, email, dropdown, file upload, dan lainnya) di dashboard, lalu menyematkan form tersebut di situs atau aplikasi Anda — baik via iframe satu baris maupun via komponen React. Submission yang masuk tersimpan di Sawala dan bisa Anda akses lewat dashboard atau API.
+
+## Kapan memilih Formulir
+
+- Anda butuh form kontak, pendaftaran event, survei, atau lead capture **tanpa membangun backend submission sendiri**.
+- Tim non-teknis perlu memodifikasi form (menambah field, mengubah teks tombol) tanpa deploy ulang situs.
+- Anda butuh form yang bisa **menerima file upload** dan menyimpannya otomatis ke [Berkasna](/id/docs/berkasna/what-is-berkasna).
+- Anda ingin satu form bisa ditempel di banyak situs sekaligus.
+
+## Konsep inti
+
+- **Form** — definisi struktur: nama, slug, daftar field, dan settings (misalnya redirect URL setelah submit).
+- **Field** — satu input dalam form. Mendukung tipe: text, email, textarea, number, checkbox, radio, select, dan file upload.
+- **Submission** — satu hasil pengisian form. Tersimpan dengan timestamp dan metadata (IP, user agent).
+- **Embed** — cara form muncul di situs Anda. Dua opsi: iframe (untuk situs vanilla) atau komponen React (untuk integrasi yang lebih dalam).
+
+## Dua mode embed
+
+Formulir mendukung dua pola embed yang sengaja berbeda agar cocok dengan berbagai kasus pakai:
+
+- **iframe embed** — satu tag HTML, langsung bisa dipakai di situs apa pun (WordPress, Webflow, static HTML, blog platform mana pun yang membolehkan iframe). Form muncul di iframe yang isolated dari situs Anda. Cocok untuk integrasi cepat.
+- **React component** — install `@sawala/formulir-react`, pakai komponen `<FormulirForm slug="..." />`. Form di-render langsung di DOM situs Anda, jadi style situs Anda mempengaruhi tampilan form. Cocok untuk integrasi yang mempertahankan look-and-feel situs.
+
+## File upload
+
+Field bertipe `file` di Formulir terintegrasi otomatis dengan [Berkasna](/id/docs/berkasna/what-is-berkasna). Saat pengguna submit form dengan file, file langsung tersimpan sebagai aset Berkasna; submission menyimpan referensi ke aset tersebut.
+
+## Anti-spam
+
+Setiap form dapat mengaktifkan **proteksi bot** untuk memblokir submission otomatis dari skrip. Konfigurasinya cukup centang satu opsi di settings form — Formulir mengurus sisa integrasinya.
+
+Lanjut ke [tutorial form pertama](/id/docs/formulir/tutorial-first-form) untuk membuat form Anda.

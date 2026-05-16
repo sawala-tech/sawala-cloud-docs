@@ -1,0 +1,94 @@
+---
+title: Kontena API Reference
+description: Kontena's public REST API — every endpoint, parameter, and header you need to read content.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate** — Indonesian source at [`api.mdx`](./api.mdx). The tables and code samples below are language-neutral and don't need translation; only the prose around them does.
+
+<Callout type="info">
+An interactive OpenAPI renderer will be added here once the public spec is exposed. For now this page shows endpoints in tables.
+</Callout>
+
+## Base URL
+
+```
+https://api.sawala.cloud/public/kontena
+```
+
+## Required header
+
+```
+X-API-Key: pk_live_xxx
+```
+
+A public key (`pk_live_…`) is enough for every read endpoint here. See [how to mint an API key](/en/docs/kontena/how-to-mint-api-key).
+
+## Endpoints
+
+### Collection (multiple entries)
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/projects/{projId}/content/collection/{schemaSlug}` | List entries in a collection |
+| `GET` | `/projects/{projId}/content/collection/{schemaSlug}/{id}` | Fetch one entry by ID |
+
+### Single (one entry per locale)
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/projects/{projId}/content/single/{schemaSlug}` | Fetch the singleton entry |
+
+### Schemas
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/projects/{projId}/schemas` | List all schemas |
+| `GET` | `/projects/{projId}/schemas/{schemaId}` | Fetch a schema definition |
+
+## Query parameters
+
+| Param | Values | Description |
+| --- | --- | --- |
+| `locale` | `id`, `en`, … | Filter by entry locale |
+| `q` | string | Substring filter on `title` and `slug` |
+| `publicationState` | `live` (default), `preview` | `preview` requires a secret key |
+| `limit` | integer (default 20, max 100) | Entries per page |
+| `cursor` | string | Cursor for the next page |
+
+## Response shape
+
+```json
+{
+  "items": [
+    {
+      "id":        "ent_abc",
+      "slug":      "hello-world",
+      "title":     "Hello World",
+      "locale":    "en",
+      "status":    "published",
+      "createdAt": "2026-05-01T10:00:00Z",
+      "updatedAt": "2026-05-01T10:30:00Z",
+      "data":      { "body": "<p>...</p>", "coverImage": { "url": "https://..." } }
+    }
+  ],
+  "meta": {
+    "pagination": { "limit": 20, "hasMore": true, "nextCursor": "ZW50X3h5eg" }
+  }
+}
+```
+
+## Error codes
+
+| HTTP | Body | Cause |
+| --- | --- | --- |
+| `400` | `{ "error": "..." }` | Invalid params/body |
+| `401` | `{ "error": "unauthorized" }` | Missing/wrong API key |
+| `403` | `{ "error": "forbidden" }` | Token has no access to that project |
+| `404` | `{ "error": "not found" }` | Entry / schema / project doesn't exist |
+| `429` | `{ "error": "rate limit exceeded" }` | Too many requests |
+
+## Rate limit
+
+Default: 100 requests per minute per API key. Contact Sawala to raise this.

@@ -1,0 +1,43 @@
+---
+title: How to mint a Kontena API key
+description: Five steps to create a public or secret Kontena key from the dashboard, plus rotation and scope guidance.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate** — Indonesian source at [`how-to-mint-api-key.mdx`](./how-to-mint-api-key.mdx). Translators: render the steps below into English.
+
+A Kontena API key is the long-lived token your app uses to access the API.
+
+- **Public key (`pk_live_…`)** — read-only, safe for browser/client use.
+- **Secret key (`sk_live_…`)** — read/write, server-side only.
+
+## Steps
+
+1. Open **Organization Settings → API Keys** in the dashboard.
+2. Click **Create Key**.
+3. Choose Type (Public/Secret), Scope (which projects), Product (Kontena).
+4. Click **Create**. Copy the token — it only appears once.
+5. Save it to a password manager or your team's secret store.
+
+```
+X-API-Key: pk_live_xxx
+```
+
+<Callout type="warn">
+**Token leaked?** Open API Keys, find the row, click **Revoke**. Revoked tokens are rejected from the next second. Then mint a new key with the same scope.
+</Callout>
+
+## Rotation guidelines
+
+(Translate: 90-day cycle for secret keys; rotate immediately on team change; rotate-then-revoke to avoid downtime.)
+
+## Troubleshooting
+
+| Error | Common cause | Fix |
+| --- | --- | --- |
+| `401 Unauthorized` | Wrong header | Use `X-API-Key: <token>`, not `Authorization: Bearer` |
+| `403 Forbidden` | Token has no access to that project | Create a key with the right scope |
+| `429 Too Many Requests` | Rate limit exceeded | Add caching, or contact Sawala to raise the limit |
+
+For the full endpoint list, see the [API reference](/en/docs/kontena/reference/api).

@@ -1,0 +1,103 @@
+---
+title: Tutorial — Blog pertama dengan Kontena
+description: Dari nol sampai blog yang membaca data dari Kontena dalam 15 menit — skema, API key, dan kode fetch.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Tutorial ini membawa Anda dari nol sampai blog yang membaca data dari Kontena dalam **15 menit**. Di akhir, Anda akan punya skrip atau halaman yang mencetak daftar artikel terbaru dari project Kontena Anda.
+
+<Callout type="info">
+**Prasyarat.** Akun Sawala Cloud aktif dan satu project di dalamnya. Belum punya? Daftar gratis di [sawala.cloud](https://sawala.cloud).
+</Callout>
+
+<Steps>
+
+<Step>
+
+### Buat skema `post`
+
+Buka dashboard Kontena, klik **Buat Skema**, lalu isi:
+
+- **Nama:** `Post`
+- **Slug:** `post` (otomatis)
+- **Tipe:** Koleksi
+
+Tambahkan tiga field:
+
+1. `title` — Text — wajib
+2. `body` — Rich text — wajib
+3. `coverImage` — Media — opsional
+
+Klik **Simpan**.
+
+</Step>
+
+<Step>
+
+### Isi satu entri
+
+Pergi ke menu **Konten → Post → Buat Entri**. Isi `title` dan `body`. Klik **Simpan**, lalu klik **Publish**.
+
+</Step>
+
+<Step>
+
+### Mint API key publik
+
+Buka **Pengaturan Organisasi → API Keys**, klik **Buat Public Key**, dan pilih project Anda. Salin token (formatnya `pk_live_…`) — token hanya muncul satu kali, jadi simpan di tempat aman seperti password manager.
+
+</Step>
+
+<Step>
+
+### Fetch dari kode
+
+Ganti `proj_xxx` dan `pk_live_xxx` dengan nilai project dan token Anda.
+
+<Tabs items={['curl', 'fetch (vanilla)', '@sawala/kontena-client']}>
+<Tab value="curl">
+```bash
+curl -H "X-API-Key: pk_live_xxx" \
+  "https://api.sawala.cloud/public/kontena/projects/proj_xxx/content/collection/post?locale=id"
+```
+</Tab>
+<Tab value="fetch (vanilla)">
+```js
+const res = await fetch(
+  'https://api.sawala.cloud/public/kontena/projects/proj_xxx/content/collection/post?locale=id',
+  { headers: { 'X-API-Key': 'pk_live_xxx' } }
+);
+const { items } = await res.json();
+console.log(items);
+```
+</Tab>
+<Tab value="@sawala/kontena-client">
+```ts
+import { createKontenaClient } from '@sawala/kontena-client';
+
+const kontena = createKontenaClient({
+  baseUrl:     'https://api.sawala.cloud/public/kontena',
+  projectId:   'proj_xxx',
+  publicToken: 'pk_live_xxx',
+});
+
+interface Post { title: string; body: string }
+const { items } = await kontena.listCollection<Post>('post', { locale: 'id' });
+```
+</Tab>
+</Tabs>
+
+Jalankan, dan Anda akan melihat entri yang baru diterbitkan muncul di output.
+
+</Step>
+
+</Steps>
+
+## Langkah selanjutnya
+
+- Tambahkan locale `en` di skema yang sama dan terbitkan versi Inggris.
+- Pelajari [cara mint API key](/id/docs/kontena/how-to-mint-api-key) lebih dalam — public vs secret key, rotasi, scope.
+- Lihat [referensi API](/id/docs/kontena/reference/api) lengkap untuk semua endpoint dan parameter.

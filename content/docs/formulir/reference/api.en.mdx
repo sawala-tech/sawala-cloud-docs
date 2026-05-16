@@ -1,0 +1,91 @@
+---
+title: Formulir API Reference
+description: Formulir's public REST API — fetch form definitions, submit data, manage submissions.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate** — Indonesian source at [`api.mdx`](./api.mdx).
+
+<Callout type="info">
+An interactive OpenAPI renderer will be added once the public spec is exposed.
+</Callout>
+
+## Base URLs
+
+```
+Public API:     https://api.sawala.cloud/public/formulir
+Embed delivery: https://formulir.id
+```
+
+- **Public API** — `X-API-Key`-authorized. List submissions, fetch form definitions, etc.
+- **Embed delivery** — public, used by iframe and React component in the browser.
+
+## Required header (Public API)
+
+```
+X-API-Key: <pk_live_… or sk_live_…>
+```
+
+## Endpoints
+
+### Form definition
+
+| Method | URL | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}` | Public key | Fetch form definition (fields + settings) |
+
+### Submissions
+
+| Method | URL | Auth | Description |
+| --- | --- | --- | --- |
+| `POST` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions` | Public key | Submit data |
+| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions?limit=&cursor=` | Secret key | List submissions for a form |
+| `GET` | `api.sawala.cloud/public/formulir/submissions/{id}` | Secret key | Fetch one submission |
+
+### Embed URLs (formulir.id)
+
+| URL | Auth | Description |
+| --- | --- | --- |
+| `formulir.id/embed/{slug}` | Public (slug only) | Iframe-embeddable form |
+| `formulir.id/formulir.js` | Public | Script tag embed |
+
+## Submit body
+
+```json
+{ "name": "...", "email": "...", "message": "..." }
+```
+
+Keys match `name` in each field definition.
+
+## File upload fields
+
+(Translate: two-step flow — upload to Formulir's upload endpoint to get `assetId`, then submit with `assetId` as the field value.)
+
+## Error codes
+
+| HTTP | Cause |
+| --- | --- |
+| `400` | Required field missing or invalid format |
+| `401` | Wrong/missing API key (Public API) |
+| `403` | Token has no access |
+| `404` | Form not found |
+| `422` | Field validation failed — body has per-field errors |
+| `429` | Rate limit exceeded |
+
+### `422` body
+
+```json
+{
+  "error":  "validation_failed",
+  "fields": {
+    "email":   "Invalid email format",
+    "message": "Required"
+  }
+}
+```
+
+## Rate limits
+
+- **Submit:** 30/min per IP per form.
+- **List/get (Public API):** 100/min per API key.
