@@ -1,0 +1,39 @@
+---
+title: Your first board
+description: Create a Kanban board in Tugasna, add items, move them across columns, and break work down with sub-items — all from the dashboard.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Tugasna organizes work into **boards** with Kanban columns. In this short walkthrough you'll create a board, add a few items, and move them across columns as the work progresses. Everything happens in the dashboard — there's nothing to install. You'll need a Sawala Cloud account and a [project](/en/docs/general-concepts/organizations-and-projects).
+
+## 1. Create a board
+
+Open **Tugasna** in your project and create a board — for example `Website launch`. A new board starts with three columns:
+
+- **Todo**
+- **In Progress**
+- **Done**
+
+You can rename, recolor, and reorder these columns, and add more. Column order matters (see step 3).
+
+## 2. Add items
+
+Add **items** — the cards that represent units of work — to a column. Give each a title and, optionally, a description. An item also holds assignees, a checklist, attachments, custom fields, and comments, so a card can carry everything a task needs.
+
+## 3. Move work across columns
+
+As work progresses, move an item from one column to the next. An item sitting in the **last column** counts as **done** — that's how Tugasna knows a task is complete, so you don't need a separate "completed" toggle.
+
+<Callout type="info">
+"Done" follows the **last column by position**, whatever you name it. If you add a `Released` column after `Done`, items in `Released` become the ones that count as done.
+</Callout>
+
+## 4. Break work down with sub-items
+
+A large item can be split into **sub-items** — smaller cards nested under a parent. The parent shows how many of its children are done, so you can track progress on a multi-part task at a glance.
+
+## What's next
+
+- [Plan with the backlog](/en/docs/tugasna/how-to-backlog) — park ideas before they hit a board.
+- [Labels vs tags](/en/docs/tugasna/how-to-labels-and-tags) — the two ways to categorize items, and when to use each.

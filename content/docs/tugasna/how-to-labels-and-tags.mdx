@@ -1,0 +1,37 @@
+---
+title: Labels vs tags
+description: Both are colored chips for categorizing items, but labels belong to a board and tags belong to the project — choose by whether the category should follow the item everywhere.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+Tugasna gives you two ways to categorize items with colored chips — **labels** and **tags**. They look similar, but they live at different levels, and picking the right one keeps your categories meaningful as items move around.
+
+## The difference
+
+| | **Labels** | **Tags** |
+| --- | --- | --- |
+| Belong to | A **board** | The **project** |
+| Unique within | That board | The whole project |
+| When an item moves boards | **Cleared** | **Survive** |
+| Good for | Stages or categories that only make sense on one board | Themes that should follow an item everywhere |
+
+## Labels — board-scoped
+
+A label is defined on a board and only applies there. If an item leaves that board — placed back to the backlog, or moved to another board — its labels are **removed**, because they have no meaning off that board. Use labels for board-specific distinctions like `Blocked`, `Needs review`, or `This sprint`.
+
+## Tags — project-scoped
+
+A tag is defined once for the whole project and **follows an item everywhere** — across boards and the backlog. Use tags for durable themes you want to track project-wide, like `Bug`, `Customer request`, or a feature area.
+
+<Callout type="info">
+**Rule of thumb:** ask "should this category follow the card around the project?" If yes, use a **tag**. If it only matters on this one board, use a **label**.
+</Callout>
+
+## Custom fields behave like labels
+
+Custom fields are also **board-scoped** — their values are cleared when an item moves to another board, the same way labels are. Anything that must persist across boards belongs on a tag.
+
+See [Plan with the backlog](/id/docs/tugasna/how-to-backlog) for how moving items between the backlog and boards affects these.
