@@ -1,0 +1,52 @@
+---
+title: Organizations & projects
+description: How Sawala Cloud structures your work — an organization is your workspace and billing boundary; a project is an isolated space inside it.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+Everything you create in Sawala Cloud lives inside two nested containers: an **organization** and, within it, a **project**. Getting this mental model right makes the rest of the platform click into place.
+
+## Organization
+
+An **organization** is your top-level workspace. It is where:
+
+- **Members** live — you invite teammates into the organization and assign them roles.
+- **Billing** lives — your plan and usage belong to the organization.
+- **Projects** are created and grouped.
+
+When you first sign up, Sawala Cloud creates an organization for you automatically. Agencies and larger teams may run several organizations (for example, one per client company), but most people start with just one.
+
+## Project
+
+A **project** is an isolated space inside an organization. It is the boundary that **content, files, and forms belong to**:
+
+- A Kontena schema and its entries belong to a project.
+- A Berkasna file belongs to a project.
+- A Formulir form and its submissions belong to a project.
+
+Two projects never see each other's data. This makes projects the natural unit for separating, say, a **staging** site from **production**, or one **client website** from another, all under the same organization and bill.
+
+<Callout type="info">
+Project isolation is enforced everywhere — in the dashboard and in the APIs. API requests carry the project they act on, so a key minted for one project can never read another project's data. See [API keys & access](/id/docs/general-concepts/api-keys-and-access).
+</Callout>
+
+## Switching projects
+
+The dashboard always operates **in the context of one project at a time**. A project switcher at the top of the dashboard lets you change which project you're working in — the content, files, and forms you see update to match.
+
+## Choosing how to split projects
+
+A few common patterns:
+
+- **One project per environment** — `staging` and `production` for the same site.
+- **One project per site or client** — an agency keeps each client's content fully separate.
+- **One project, many products** — a single site that uses Kontena for content, Berkasna for media, and Formulir for its contact form, all in one project.
+
+## Plans and limits
+
+Your **plan** is set at the organization level and caps things like how many projects you can create. The free plan includes a small number of projects; paid plans raise the limits. If a "create project" action is rejected, you've likely hit your plan's project cap — review your plan in the dashboard's billing area.
+
+Next: see what each product does in the [Products overview](/id/docs/general-concepts/products-overview).

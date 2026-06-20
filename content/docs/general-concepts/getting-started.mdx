@@ -1,0 +1,57 @@
+---
+title: Getting started
+description: From zero to your first API call in about ten minutes — create an account, a project, and a key, then pick a product.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+This is the fastest path from nothing to a working Sawala Cloud setup. In about ten minutes you'll have an account, a project, and an API key — ready to plug into a real product.
+
+## 1. Create your account
+
+Go to [sawala.cloud](https://sawala.cloud) and sign up. Verify your email if prompted. Sawala Cloud creates an **organization** for you automatically, so you have a workspace from the start. (More in [Accounts & sign-in](/id/docs/general-concepts/accounts-and-sign-in).)
+
+## 2. Open the dashboard
+
+Head to **[sawala.cloud/dashboard](https://sawala.cloud/dashboard)**. This is where you'll manage everything that doesn't go through code.
+
+## 3. Create a project
+
+Your organization needs at least one **project** to hold content, files, and forms. Create one and give it a clear name — for example `my-website` or `acme-staging`.
+
+<Callout type="info">
+A project is an isolated space. If you're separating staging from production, or one client from another, make a project for each. See [Organizations & projects](/id/docs/general-concepts/organizations-and-projects).
+</Callout>
+
+## 4. Pick a product
+
+Decide what you need first:
+
+- Managing **articles, pages, or a catalog**? → **[Kontena](/id/docs/kontena/what-is-kontena)**
+- Hosting **images, documents, or downloads**? → **[Berkasna](/id/docs/berkasna/what-is-berkasna)**
+- Collecting **form submissions**? → **[Formulir](/id/docs/formulir/what-is-formulir)**
+
+You can use more than one — they share the same project.
+
+## 5. Mint an API key
+
+If you'll read or write data from your own code, create a key under **Organization Settings → API Keys**. Pick **public** for read-only client-side use, **secret** for server-side writes, and scope it to your project. Copy the token — it's shown only once. (Details in [API keys & access](/id/docs/general-concepts/api-keys-and-access).)
+
+## 6. Make your first call
+
+Each product's public API lives under `https://api.sawala.cloud/public/<product>`, authenticated with the `X-API-Key` header:
+
+```bash
+curl https://api.sawala.cloud/public/kontena/projects/<projectId>/content/collection/post \
+  -H "X-API-Key: pk_live_xxx"
+```
+
+## Where to go next
+
+Follow a product's hands-on tutorial to build something real:
+
+- [Build your first blog with Kontena](/id/docs/kontena/tutorial-first-blog)
+- [Your first upload with Berkasna](/id/docs/berkasna/tutorial-first-upload)
+- [Your first form with Formulir](/id/docs/formulir/tutorial-first-form)

@@ -1,0 +1,12 @@
+{
+  "title": "General Concepts",
+  "pages": [
+    "what-is-sawala-cloud",
+    "accounts-and-sign-in",
+    "organizations-and-projects",
+    "products-overview",
+    "api-keys-and-access",
+    "cli-and-sdk",
+    "getting-started"
+  ]
+}

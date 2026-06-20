@@ -1,0 +1,64 @@
+---
+title: API keys & access
+description: How Sawala Cloud authenticates API requests — public vs secret keys, project scope, and the base URL for every product's public API.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The dashboard is for people; **API keys** are for code. When your website or app talks to a Sawala Cloud product over its REST API, it identifies itself with an API key. Keys are minted in the dashboard and are always **scoped to a project**.
+
+## Public vs secret keys
+
+Most products distinguish two kinds of key:
+
+- **Public key (`pk_live_…`)** — **read-only** and safe to ship to the browser or any client-side code. Use it to *read* content, list public files, and load forms.
+- **Secret key (`sk_live_…`)** — **read/write** and **server-side only**. Use it to create or update data from a trusted backend. Never expose a secret key in client code.
+
+<Callout type="warn">
+A secret key can change your data. Keep it on the server, store it in a secret manager, and never commit it to a repository or embed it in a front-end bundle.
+</Callout>
+
+## Project scope
+
+Every key is tied to the **project** (or projects) you choose when you mint it. A key can only read and write data in the projects it's scoped to — it can never reach another project's content. This is how [project isolation](/en/docs/general-concepts/organizations-and-projects) is enforced at the API layer.
+
+## Minting a key
+
+1. Open **Organization Settings → API Keys** in the [dashboard](https://sawala.cloud/dashboard).
+2. Click **Create Key**.
+3. Choose the **type** (public or secret), the **scope** (which project(s)), and the **product** the key is for.
+4. Click **Create** and copy the token — **it is shown only once**. Save it to a password manager or secret store.
+
+To revoke a leaked or unused key, find its row in the same screen and click **Revoke** — revoked keys stop working almost immediately.
+
+## Using a key
+
+Send the key in the `X-API-Key` header:
+
+```
+X-API-Key: pk_live_xxx
+```
+
+Each product's public API has its own base URL under `api.sawala.cloud/public`:
+
+```
+https://api.sawala.cloud/public/kontena
+https://api.sawala.cloud/public/berkasna
+https://api.sawala.cloud/public/formulir
+```
+
+See each product's API reference for the full endpoint list — for example, the [Kontena API reference](/en/docs/kontena/reference/api).
+
+## Common errors
+
+| Error | Likely cause | Fix |
+| --- | --- | --- |
+| `401 Unauthorized` | Missing or wrong header | Send `X-API-Key: <token>`, not `Authorization: Bearer` |
+| `403 Forbidden` | Key isn't scoped to that project | Mint a key with the right project scope |
+| `429 Too Many Requests` | Rate limit hit | Add caching, or ask Sawala to raise your limit |
+
+<Callout type="info">
+The dashboard, the CLIs, and the MCP servers authenticate differently under the hood — see [CLI & SDKs](/en/docs/general-concepts/cli-and-sdk). As an app developer using an SDK or the REST API directly, you only need an **API key** as described here.
+</Callout>
+
+Next: put it all together in [Getting started](/en/docs/general-concepts/getting-started).

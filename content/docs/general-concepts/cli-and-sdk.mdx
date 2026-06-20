@@ -1,0 +1,99 @@
+---
+title: CLI & SDKs
+description: The developer tools for working with Sawala Cloud from code — official SDKs for your app, CLIs for your terminal, and MCP servers for AI agents.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+Beyond the dashboard and the raw [REST APIs](/id/docs/general-concepts/api-keys-and-access), Sawala publishes ready-made tools so you don't have to hand-roll HTTP calls. There are three families, for three audiences:
+
+- **SDKs** — typed `@sawala/*` packages you install into your app.
+- **CLIs** — `sawala` and `kodena` binaries for your terminal and CI.
+- **MCP servers** — let an AI agent drive Sawala on your behalf.
+
+## SDKs — for your application code
+
+The official SDKs are published on npm under the **`@sawala/*`** scope. They wrap the public APIs with typed methods so you can fetch content or embed forms without writing fetch calls.
+
+| Package | For | Use it to |
+| --- | --- | --- |
+| [`@sawala/kontena-client`](https://www.npmjs.com/package/@sawala/kontena-client) | Kontena | Read CMS content (schemas + entries) from any JS/TS app |
+| [`@sawala/datana-client`](https://www.npmjs.com/package/@sawala/datana-client) | Datana | Query structured-data collections |
+| [`@sawala/formulir-react`](https://www.npmjs.com/package/@sawala/formulir-react) | Formulir | Embed forms in React with components and headless hooks |
+
+```bash
+npm install @sawala/kontena-client
+```
+
+SDKs authenticate with an **[API key](/id/docs/general-concepts/api-keys-and-access)** — typically a public key (`pk_live_…`) for read access. Each package's own README carries its quickstart and API reference. More packages ship over time.
+
+<Callout type="info">
+The SDKs are framework-agnostic (except `formulir-react`, which is for React). Use them in Next.js, Nuxt, Astro, a Node server, or plain browser code.
+</Callout>
+
+## CLIs — for your terminal and CI
+
+Two command-line tools cover different jobs. They share the same token format, but keep separate credential stores.
+
+### `@sawala/cli` — the umbrella CLI
+
+One binary, `sawala`, for the core content products — **Kontena**, **Formulir**, and **Berkasna**.
+
+```bash
+npm i -g @sawala/cli
+sawala login                 # paste a CLI token from the dashboard
+sawala org use <org-slug>    # if you belong to more than one org
+sawala project use <project> # pick the target project
+
+sawala kontena list          # list content schemas in the project
+sawala formulir list         # list forms
+sawala berkasna list         # list assets
+```
+
+### `@sawala/kodena` — the deployment CLI
+
+The canonical tool for the **Kodena** hosting product — ship a `worker.js` + assets bundle (often an OpenNext-compiled Next.js app) to Sawala's edge.
+
+```bash
+npm i -g @sawala/kodena
+kodena login
+kodena init                  # scaffold from a template (optional)
+kodena deploy --build        # build and deploy
+```
+
+Both CLIs require **Node ≥ 20**.
+
+<Callout type="info">
+**CLIs use CLI tokens, not API keys.** Mint a `koda_…` token in the dashboard under **Organization Settings → CLI tokens**, then run `sawala login` (or `kodena login`) and paste it. The same token works for both binaries. Credentials are stored locally in your home directory.
+</Callout>
+
+## MCP servers — for AI agents
+
+If you work with an MCP-capable AI assistant (such as Claude), Sawala's **MCP servers** expose the same operations as tools the agent can call:
+
+- [`@sawala/mcp`](https://www.npmjs.com/package/@sawala/mcp) — Kontena, Formulir, and Berkasna.
+- [`@sawala/kodena-mcp`](https://www.npmjs.com/package/@sawala/kodena-mcp) — the Kodena deployment API.
+
+They authenticate with the same **CLI token** as the CLIs.
+
+## Which should I use?
+
+| You want to… | Reach for |
+| --- | --- |
+| Pull content or data into a website or app | An **SDK** (or the REST API directly) |
+| Embed a form in a React site | **`@sawala/formulir-react`** |
+| Script or automate tasks, manage content from a terminal or CI | **`sawala` CLI** |
+| Deploy a site or worker | **`kodena` CLI** |
+| Let an AI agent operate Sawala for you | An **MCP server** |
+
+## Authentication at a glance
+
+| Surface | Credential | Where it's minted |
+| --- | --- | --- |
+| SDKs / REST API | **API key** (`pk_live_…` / `sk_live_…`) | Organization Settings → API Keys |
+| CLIs / MCP servers | **CLI token** (`koda_…`) | Organization Settings → CLI tokens |
+| Dashboard | Your sign-in session | — |
+
+See [API keys & access](/id/docs/general-concepts/api-keys-and-access) for the full key model.

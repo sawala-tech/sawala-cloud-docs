@@ -1,0 +1,54 @@
+---
+title: Products overview
+description: A one-paragraph tour of the Sawala Cloud products — what each one does and when to reach for it.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+Sawala Cloud is a family of products that share one account, one dashboard, and one API surface. You can adopt any one of them on its own, or combine them. Three products have full documentation today; the rest are part of the platform and documented as they mature.
+
+## Documented products
+
+### Kontena — headless CMS
+
+**[Kontena](/id/docs/kontena/what-is-kontena)** manages structured content without dictating how it looks. You define **schemas** (the shape of your content — a `post`, a `page`, a `product`) and fill in **entries**, then read them over a REST API from any front-end. Reach for Kontena for blogs, marketing pages, catalogs, and any content a non-developer should be able to edit.
+
+### Berkasna — file & asset storage
+
+**[Berkasna](/id/docs/berkasna/what-is-berkasna)** stores files and assets — images, documents, downloads. It supports both **public files** (served on a public URL) and **private files** (access-controlled). Kontena's `media` field type is backed by Berkasna, so uploads from the CMS land here. Reach for Berkasna whenever you need to host user uploads or media.
+
+### Formulir — forms & submissions
+
+**[Formulir](/id/docs/formulir/what-is-formulir)** is a form builder with a submission inbox. Build a form in the dashboard, embed it on any site (including static sites — no backend of your own required), and collect submissions. Reach for Formulir for contact forms, signups, surveys, and lead capture.
+
+## The wider platform
+
+Sawala Cloud includes a growing family of products beyond the three above. These are available on the platform today and will gain dedicated docs over time:
+
+- **Kodena** — hosting & deployment. Ship sites and workers to Sawala's edge, with custom domains and `.id` domain registration. Has its own dashboard at `kodena.sawala.cloud`.
+- **Sebar** — transactional email. Send reliable application email (receipts, notifications) over a managed provider, with per-organization sender isolation.
+- **Datana** — structured-data platform. Typed collections with server-side query, for application data beyond editorial content.
+- **Akuna** — membership. Connect your own Clerk app and get a mirrored member directory for gated content and communities.
+- **Tugasna** — task & project management. Boards, items, backlog, and checklists to organize work.
+- **Kiosna** — billing for *your* customers. Products, contracts, invoices, and payments to bill the people who use your product.
+- **Kelasna** — nano-learning marketplace. Courses, learners, and certificates.
+- **Ajena** — AI search. Retrieval-augmented (RAG) knowledge search over your content. Has its own dashboard at `ajena.sawala.cloud`.
+
+<Callout>
+This list grows over time. If a product you need isn't documented yet, the [dashboard](https://sawala.cloud/dashboard) is the source of truth for what's available on your plan.
+</Callout>
+
+## How they fit together
+
+The products are designed to compose. A typical site might:
+
+- Store its articles and pages in **Kontena**,
+- keep its images and downloads in **Berkasna**,
+- collect contact requests through **Formulir**,
+- and live in a single **project** under your organization.
+
+Each product is reached through its own [API key](/id/docs/general-concepts/api-keys-and-access), all scoped to that project.
+
+Ready to build something? Head to [Getting started](/id/docs/general-concepts/getting-started).
