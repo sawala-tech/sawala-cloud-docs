@@ -1,0 +1,38 @@
+---
+title: What is Sebar
+description: Sebar is Sawala Cloud's transactional communication service — send templated email through one API and track every message's delivery.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+**Sebar** is Sawala Cloud's **transactional communication service** — the platform's shared layer for outbound notifications. Your app (or another Sawala product) sends a message by calling one endpoint with a template, a recipient, and a set of variables; Sebar renders it, delivers it, and tracks what happened. The first channel is **email**.
+
+## When to choose Sebar
+
+Reach for Sebar whenever your product needs to send a person a message as a result of something they did:
+
+- Receipts, order confirmations, and invoices.
+- Account email — verification, password resets, welcome messages.
+- Notifications and alerts.
+
+You call one API and never touch an email provider, deliverability, or retry logic yourself.
+
+## Core concepts
+
+- **Template** — a reusable message body with `{{variable}}` placeholders in the subject and the HTML/text body. You author it once and reference it by id; Sebar fills in the variables at send time. (You can also send an ad-hoc message with an inline subject and body.)
+- **Message** — one send. It carries the rendered subject and body, the resolved sender and recipient, and a delivery status that advances over its lifetime.
+- **Delivery state** — a message moves `queued → sent → delivered` on the happy path, or lands in a terminal state like `bounced`, `spam`, `suppressed`, or `failed`. Status is driven by the provider, and every transition is recorded so a send can be traced step by step.
+
+<Callout type="info">
+Each organization gets its own isolated sending reputation and suppression list, so one organization's bounces or complaints never affect another's deliverability.
+</Callout>
+
+## Sending a message
+
+Sebar is reached through the [public API](/en/docs/general-concepts/api-keys-and-access) with an [API key](/en/docs/general-concepts/api-keys-and-access):
+
+```
+https://api.sawala.cloud/public/sebar
+```
+
+Messages are tracked per project, so you can filter an organization's activity down to a single project.

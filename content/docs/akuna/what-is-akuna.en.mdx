@@ -1,0 +1,36 @@
+---
+title: What is Akuna
+description: Akuna is Sawala Cloud's membership product — connect your own Clerk app once and add sign-in, a member directory, and a drop-in embed to your site with only a Sawala API key.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+**Akuna** is Sawala Cloud's **membership** product. You connect your own [Clerk](https://clerk.com) application to Sawala once; Akuna securely stores that connection, keeps a browsable directory of everyone who signs up, and serves a drop-in embed that boots sign-in on your website — with only a Sawala API key in your front-end. You never re-implement authentication: you bring a Clerk app, Sawala holds the secrets and the member mirror, and the embed renders.
+
+## When to choose Akuna
+
+Reach for Akuna when your site needs **end-user accounts** — members, not your team:
+
+- Gated content or a members-only area.
+- A community where people sign up, form groups, and have profiles.
+- Any site where you want managed sign-in without wiring auth and a user database yourself.
+
+## Core concepts
+
+- **Connection** — links your Sawala project (or organization) to one Clerk application. You configure it once; Akuna stores the Clerk keys **encrypted at rest** and never exposes them again.
+- **Member** — an end-user who signed in through your connected Clerk app. Akuna mirrors members (and the groups they form) into a directory you can browse.
+- **Embed** — the `@sawala/akuna-react` package drops sign-in into a static or server-rendered site. It fetches what it needs from Akuna using your API key — no Clerk secret ever ships in the browser.
+
+<Callout type="info">
+Two identities never mix: your **team** signs in to the Sawala dashboard to manage the connection, while your **members** sign in on your own website through your Clerk app. They share no accounts, keys, or tokens.
+</Callout>
+
+## Adding it to your site
+
+The embed reads its configuration from the [public API](/en/docs/general-concepts/api-keys-and-access) using a Sawala [API key](/en/docs/general-concepts/api-keys-and-access) scoped for Akuna:
+
+```bash
+npm install @sawala/akuna-react
+```
+
+Akuna is built to be consumed by other Sawala products too — for example, to gate learners in [Kelasna](/en/docs/kelasna/what-is-kelasna).

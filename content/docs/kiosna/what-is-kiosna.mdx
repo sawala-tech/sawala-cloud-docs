@@ -1,0 +1,35 @@
+---
+title: What is Kiosna
+description: Kiosna is Sawala Cloud's B2B billing backbone — a catalog, contracts, invoices, payments, and renewals for billing your business clients.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+**Kiosna** is Sawala Cloud's **B2B billing backbone**. It's how you bill business clients: keep a catalog of products and priced variants, sign clients to fixed-term **contracts**, generate **invoices**, record **payments** against them, and renew contracts with reminders. It's run from the dashboard by whoever handles your billing.
+
+## When to choose Kiosna
+
+Reach for Kiosna when you sell to other businesses on contracts and invoices, rather than self-serve checkout:
+
+- Recurring service contracts with line items and renewals.
+- Invoicing clients and tracking what's paid, partially paid, or outstanding.
+- A billing record that keeps historical invoices correct even as your prices change.
+
+## The billing chain
+
+Each stage builds on the previous one, and prices are snapshotted forward so past documents stay accurate:
+
+- **Products & SKUs** — your catalog. A product is a commercial family; a SKU is a priced, sellable variant (one-time or recurring).
+- **Clients** — the businesses you invoice, including the billing email where reminders go.
+- **Contracts** — fixed-term deals with line items that snapshot SKU prices. A contract moves through `draft → active → ending soon → ended` (or renewed/cancelled).
+- **Invoices** — generated from a contract or standalone. An invoice flows `draft → sent → partially paid → paid` (or void), with the total derived from subtotal, discount, and tax.
+- **Payments** — recorded against an invoice. Multiple payments add up, so partial payments work naturally.
+- **Renewals** — a renewed contract becomes a new contract linked to the previous one, with reminders as the end date approaches.
+
+<Callout type="info">
+Payments are **recorded manually** today — an operator logs a bank transfer with a reference note. Financial actions like issuing invoices and recording payments are limited to billing administrators.
+</Callout>
+
+Kiosna is managed from the **dashboard**. Your Sawala sign-in carries over — see [Accounts & sign-in](/id/docs/general-concepts/accounts-and-sign-in).
