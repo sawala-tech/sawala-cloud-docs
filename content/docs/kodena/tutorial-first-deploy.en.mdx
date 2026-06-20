@@ -1,0 +1,72 @@
+---
+title: Deploy your first site
+description: Scaffold a site from a template and ship it live on Kodena with the CLI — from nothing to a public URL in about ten minutes.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+In this tutorial you'll deploy a working site to Kodena and get a public URL. Budget about ten minutes. You'll need a Sawala Cloud account, a [project](/en/docs/general-concepts/organizations-and-projects), and **Node ≥ 20**.
+
+## 1. Install the CLI and sign in
+
+```bash
+npm i -g @sawala/kodena
+kodena login
+```
+
+`kodena login` opens your browser to authorize — there's nothing to copy or paste. (Headless? See [CLI & SDKs](/en/docs/general-concepts/cli-and-sdk).)
+
+Then pick where your site will live:
+
+```bash
+kodena org use <org-slug>       # if you belong to more than one org
+kodena project use <project>    # the target project
+```
+
+## 2. Scaffold from a template
+
+The fastest start is a curated template:
+
+```bash
+kodena template list            # see what's available
+kodena init                     # pick one + a target directory
+cd my-site
+npm install
+```
+
+`kodena init` writes the project **and** a ready-to-deploy `kodena.json`, so the next deploy works with no hand-editing.
+
+<Callout type="info">
+Already have a project? Skip the scaffold. Just add a `kodena.json` with a `slug`, build your bundle, and deploy — see the [CLI reference](/en/docs/kodena/reference/cli).
+</Callout>
+
+## 3. Deploy
+
+```bash
+kodena deploy --build
+```
+
+`--build` runs your project's build first, then uploads the bundle. On success the CLI prints your live URL:
+
+```
+https://my-site-acme.kodena.id
+```
+
+That's `<script-slug>-<org-handle>.kodena.id`. Open it — your site is live.
+
+## 4. Ship a change
+
+Edit a file, then redeploy:
+
+```bash
+kodena deploy --build
+```
+
+<Callout type="info">
+A small edit doesn't re-upload everything — Kodena patches only the files that changed, so routine updates are fast.
+</Callout>
+
+## What's next
+
+- [Add a custom domain](/en/docs/kodena/how-to-custom-domain) — serve your site on your own hostname.
+- [CLI reference](/en/docs/kodena/reference/cli) — every command, deploy flag, and `kodena.json` option.

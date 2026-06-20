@@ -1,0 +1,119 @@
+---
+title: How to query records
+description: Filter, search, sort, paginate, populate relations, and aggregate Datana records — server-side, with the client or raw HTTP.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Datana runs queries **server-side**, so you ask for exactly the slice you need instead of fetching everything and filtering in the browser. Each recipe below shows the [`@sawala/datana-client`](/en/docs/general-concepts/cli-and-sdk) call and the equivalent raw request. All reads return only **published** records of **public** collections, with private fields stripped.
+
+Set up the client once:
+
+```ts
+import { createDatanaClient } from '@sawala/datana-client'
+
+const datana = createDatanaClient({
+  projectId: 'proj_xxx',
+  publicApiKey: 'pk_live_xxx',
+})
+```
+
+## Filter
+
+Pass an object for simple equality. Array fields (multi-select, many-relations) match by **membership**.
+
+```ts
+await datana.listRecords('startup', {
+  filter: { industry_sector: 'fintech', city: 'Palembang' },
+})
+```
+
+For ranges and lists, use the raw filter strings — `field:in:a,b`, `field:gte:N`, `field:lte:N`:
+
+```ts
+await datana.listRecords('startup', {
+  filter: ['total_employees:gte:10', 'industry_sector:in:fintech,edutech'],
+})
+```
+
+```bash
+curl "https://api.sawala.cloud/public/datana/projects/proj_xxx/collections/startup/records?filter=total_employees:gte:10&filter=industry_sector:in:fintech,edutech" \
+  -H "X-API-Key: pk_live_xxx"
+```
+
+`filter` is **repeatable** — every `filter=` is ANDed together.
+
+## Search by title
+
+`q` is a case-insensitive search over the record title:
+
+```ts
+await datana.listRecords('startup', { q: 'bot' })
+```
+
+## Sort
+
+Sort by any field — ascending by default, descending with a leading `-`. `createdAt` and `id` are always available:
+
+```ts
+await datana.listRecords('startup', { sort: '-createdAt' })
+await datana.listRecords('startup', { sort: 'title' })
+```
+
+## Paginate
+
+Reads are cursor-paginated. `limit` is 1–100 (default 25); follow `pagination.nextCursor` until it's empty:
+
+```ts
+let cursor: string | undefined
+do {
+  const page = await datana.listRecords('startup', { limit: 100, cursor })
+  for (const record of page.items) handle(record)
+  cursor = page.pagination.nextCursor ?? undefined
+} while (cursor)
+```
+
+## Populate relations
+
+By default a relation field returns its reference. Ask Datana to inline the related record(s) with `populate` — name fields, or `*` for all relations:
+
+```ts
+await datana.getRecord('startup', '01J…', { populate: '*' })
+```
+
+```bash
+curl "https://api.sawala.cloud/public/datana/projects/proj_xxx/collections/startup/records/01J…?populate=founder,city" \
+  -H "X-API-Key: pk_live_xxx"
+```
+
+Population happens at read time: a single relation inlines as an object (or `null`), a many-relation as an array.
+
+## Aggregate
+
+Counts over published records — for stat cards and facet breakdowns. Works on single and array fields:
+
+```ts
+await datana.aggregate('startup', { count: true })                // { total: 501 }
+await datana.aggregate('startup', { groupBy: 'province' })        // { groups: { 'dki-jakarta': 119, … } }
+await datana.aggregate('startup', { distinct: ['city', 'industry_sector'] })
+```
+
+```bash
+curl "https://api.sawala.cloud/public/datana/projects/proj_xxx/collections/startup/aggregate?groupBy=industry_sector" \
+  -H "X-API-Key: pk_live_xxx"
+```
+
+<Callout type="info">
+You can only filter and sort on **public** fields. Referencing a private field in `filter` or `sort` returns `400 PRIVATE_FIELD_NOT_QUERYABLE` — private fields are reachable only with a secret key, server-side.
+</Callout>
+
+## Introspect the schema
+
+Fetch a collection's field definitions (types and `select`/`relation` options) — handy for building filter UIs:
+
+```ts
+const col = await datana.getCollection('startup')
+col?.fields.forEach((f) => console.log(f.name, f.type))
+```
+
+See the [API reference](/en/docs/datana/reference/api) for every parameter and the full response shape.

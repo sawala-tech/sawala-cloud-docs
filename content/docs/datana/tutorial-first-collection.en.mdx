@@ -1,0 +1,82 @@
+---
+title: Your first collection
+description: Model a typed collection in the dashboard, add and publish a few records, and read them from your code with the Datana client — in about fifteen minutes.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+In this tutorial you'll build a small `startup` directory: define a typed **collection**, add a couple of **records**, publish them, and read them back from code. Budget about fifteen minutes. You'll need a Sawala Cloud account and a [project](/en/docs/general-concepts/organizations-and-projects).
+
+## 1. Create the collection
+
+In the [dashboard](https://sawala.cloud/dashboard), open **Datana** in your project and create a collection:
+
+- **Slug:** `startup` (this is what you'll reference from code)
+- **Visibility:** **Public** — so it can be read through the public API
+- **Fields:**
+  - `title` — Text
+  - `city` — Text
+  - `industry_sector` — Multi-select, with a few options like `fintech`, `edutech`, `health`
+
+<Callout type="info">
+Fields are **typed**. A multi-select like `industry_sector` stores an array, not a string — Datana keeps that structure end to end, so you read it back as an array.
+</Callout>
+
+## 2. Add and publish records
+
+Still in the dashboard, add two or three records to the collection — for example:
+
+| title | city | industry_sector |
+| --- | --- | --- |
+| Bot Labs | Palembang | fintech |
+| EduWave | Bandung | edutech |
+
+A new record starts as a **draft**. Set each one's status to **Published** — the public API only ever returns published records of a public collection.
+
+## 3. Mint a publishable API key
+
+Open **Organization Settings → API Keys** and create a **publishable** key (`pk_live_…`) scoped to this project and the Datana product. Copy it — it's shown once. (More in [API keys & access](/en/docs/general-concepts/api-keys-and-access).)
+
+You'll also need your **project id** (`proj_…`), shown in your project settings.
+
+## 4. Read your records from code
+
+Install the client and list your published records:
+
+```bash
+npm install @sawala/datana-client
+```
+
+```ts
+import { createDatanaClient } from '@sawala/datana-client'
+
+const datana = createDatanaClient({
+  projectId: 'proj_xxx',
+  publicApiKey: 'pk_live_xxx',
+})
+
+const { items, pagination } = await datana.listRecords('startup', { limit: 20 })
+
+for (const record of items) {
+  console.log(record.data.title, '—', record.data.city)
+}
+console.log('more pages?', pagination.hasMore)
+```
+
+Prefer raw HTTP? The same read is one request:
+
+```bash
+curl "https://api.sawala.cloud/public/datana/projects/proj_xxx/collections/startup/records?limit=20" \
+  -H "X-API-Key: pk_live_xxx"
+```
+
+<Callout type="info">
+The publishable key is **read-only** and safe in client code. Creating, editing, and publishing records happens in the dashboard — the public client never writes.
+</Callout>
+
+## What's next
+
+You have a queryable, typed dataset live behind an API. From here:
+
+- [Query records](/en/docs/datana/how-to-query-records) — filter, sort, search, paginate, populate relations, and aggregate.
+- [API reference](/en/docs/datana/reference/api) — every endpoint, parameter, and the key tiers.

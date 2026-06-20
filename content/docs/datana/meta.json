@@ -1,4 +1,9 @@
 {
   "title": "Datana",
-  "pages": ["what-is-datana"]
+  "pages": [
+    "what-is-datana",
+    "tutorial-first-collection",
+    "how-to-query-records",
+    "reference"
+  ]
 }

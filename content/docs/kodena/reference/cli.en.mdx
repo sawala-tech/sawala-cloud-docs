@@ -1,0 +1,151 @@
+---
+title: Kodena CLI Reference
+description: The @sawala/kodena CLI — every command, the deploy flags, and the kodena.json configuration schema.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Install globally with `npm i -g @sawala/kodena` (requires **Node ≥ 20**), or run one-off with `npx @sawala/kodena`.
+
+## Commands
+
+### Auth & context
+
+| Command | What it does |
+| --- | --- |
+| `kodena login` | Sign in. Opens your browser to authorize by default; `--no-browser` to paste a token instead. |
+| `kodena logout` | Delete local credentials. Does not revoke the token server-side. |
+| `kodena whoami` | Print your identity, active org/project, and token scope. |
+| `kodena org list` / `kodena org use <slug>` | List orgs / set the active org. |
+| `kodena project list` / `kodena project use <slug>` | List projects / set the active project. |
+
+### Scaffold & deploy
+
+| Command | What it does |
+| --- | --- |
+| `kodena template list` | List starter templates for `kodena init`. |
+| `kodena init [slug] [dir]` | Scaffold a local project from a template (omit slug to pick interactively). Generates a ready-to-deploy `kodena.json`. |
+| `kodena deploy` | Upload the bundle described by `kodena.json`. Creates the script on first deploy. |
+| `kodena slug check <slug>` | Is a script slug free in the active org? Exits non-zero when taken. |
+
+### Manage scripts
+
+| Command | What it does |
+| --- | --- |
+| `kodena script list` | List every script in the active project. |
+| `kodena script get <slug>` | Show one script — name, kind, custom hostname, asset count, timestamps. |
+| `kodena script rename <slug> <name>` | Change a script's display name. |
+| `kodena script rehydrate <slug>` | Rebuild the live worker from the stored bundle (no re-upload). |
+| `kodena script rm <slug>` | Delete a script (irreversible). |
+
+### Custom domains
+
+| Command | What it does |
+| --- | --- |
+| `kodena domain set <slug> <domain>` | Attach a custom hostname to a script. |
+| `kodena domain status <slug>` | Show DNS validation / SSL status (`--json` for the raw object). |
+| `kodena domain rm <slug>` | Detach the custom domain (`--yes` to skip the prompt). |
+
+### Secrets
+
+| Command | What it does |
+| --- | --- |
+| `kodena secret put <slug> <KEY=value>` | Set or rotate one encrypted secret on the live worker — **no redeploy**. The value is never printed. |
+| `kodena secret list <slug>` | List secret **names** (values are never shown). |
+| `kodena secret rm <slug> <KEY>` | Remove one secret. |
+
+### Assets
+
+| Command | What it does |
+| --- | --- |
+| `kodena asset list <slug>` | List the files in the deployed asset bundle. |
+| `kodena asset get <slug> <path>` | Fetch one asset file (`--out` for binary). |
+| `kodena asset patch <slug> …` | Replace one or more files in the bundle without redeploying. |
+| `kodena asset rebuild <slug>` | Rebuild the asset manifest from stored objects. |
+
+## `deploy` flags
+
+| Flag | Effect |
+| --- | --- |
+| `--build` / `--no-build` | Run (or skip) the build before uploading. Default build is `npx @opennextjs/cloudflare build`. |
+| `--static` / `--no-static` | Deploy the build output as a static site (no worker), or force a worker-bundle deploy. |
+| `--slug <name>` | Override the script slug from `kodena.json`. |
+| `--org <slug>` / `--project <slug>` | One-shot override of the active context. |
+| `--var KEY=value` | Set a worker variable (plaintext). Repeatable; merges with `vars` in `kodena.json`. |
+| `--secret KEY=value` | Set an encrypted worker secret at deploy time. Repeatable. For routine rotation prefer `kodena secret put` (no rebuild). |
+| `--compat-flag <flag>` | `nodejs_compat` or `nodejs_als`. Repeatable. |
+| `--compat-date <YYYY-MM-DD>` | Set the compatibility date. |
+| `--token <koda_…>` | Use this token instead of the stored one. |
+| `--dry-run` | Do everything up to the upload, then print a bundle summary. |
+
+## `kodena.json`
+
+The CLI walks up from the current directory looking for `kodena.json` (or `kodena.config.json`). Minimal form:
+
+```json
+{ "slug": "my-script" }
+```
+
+Full schema:
+
+```json
+{
+  "slug": "my-script",
+  "name": "My script",
+  "project": "my-project",
+  "build": {
+    "command": "npx @opennextjs/cloudflare build",
+    "outputDir": ".open-next",
+    "workerEntry": ".open-next/worker.js",
+    "assetsDir": ".open-next/assets",
+    "runByDefault": false
+  },
+  "vars": { "MY_KEY": "value" },
+  "compatibilityFlags": ["nodejs_compat"],
+  "compatibilityDate": "2025-01-01"
+}
+```
+
+- `slug` is required — it's the script name, unique within your org.
+- `vars` keys must match `^[A-Z][A-Z0-9_]*$`.
+- Set `build.runByDefault: true` to make a plain `kodena deploy` build first (equivalent to always passing `--build`).
+
+<Callout type="info">
+Deploying a server-rendered Next.js app? Build with `@opennextjs/cloudflare`, set `NODE_ENV=production`, and use a recent `compatibilityDate` with `compatibilityFlags: ["nodejs_compat"]`. Stale compatibility settings are the usual cause of a build that deploys but doesn't render.
+</Callout>
+
+## Vars vs secrets
+
+A worker can read two kinds of configuration at runtime, both as `process.env.NAME`:
+
+- **Vars** — plaintext values, set with `--var` or the `vars` block in `kodena.json`. Visible when you inspect the script.
+- **Secrets** — encrypted values for things like API keys and tokens. Kodena stores only the **name**, never returns the value, and never prints it.
+
+Manage secrets without redeploying:
+
+```bash
+kodena secret put my-script API_TOKEN=s3cr3t   # set or rotate
+kodena secret list my-script                    # names only
+kodena secret rm my-script API_TOKEN            # remove
+```
+
+Secret names follow the same rule as vars (`^[A-Z][A-Z0-9_]*$`) and are scoped to your active org and project.
+
+<Callout type="info">
+If a name already exists as a plaintext **var**, it can't be switched to a secret in place. Redeploy it as a secret once — `kodena deploy --secret API_TOKEN=<value>` (and drop it from your `vars`) — after which `kodena secret put` can rotate it without a rebuild.
+</Callout>
+
+## Local state & environment
+
+The CLI stores state under `~/.kodena/` (override with `KODENA_CONFIG_DIR`):
+
+- `~/.kodena/credentials` — your token and API base.
+- `~/.kodena/config` — your active org and project.
+
+| Variable | Effect |
+| --- | --- |
+| `KODENA_API_BASE` | Override the API base URL. |
+| `KODENA_PROJECT` | Override the active project for one command. |
+| `KODENA_CONFIG_DIR` | Relocate the credentials + config directory. |
+
+For the authentication model behind `koda_…` tokens, see [API keys & access](/en/docs/general-concepts/api-keys-and-access#cli-tokens).

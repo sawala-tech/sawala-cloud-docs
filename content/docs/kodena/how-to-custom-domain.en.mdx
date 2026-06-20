@@ -1,0 +1,54 @@
+---
+title: How to add a custom domain
+description: Serve a Kodena site on your own hostname — attach the domain, point a DNS record at Kodena, and let SSL provision automatically.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Every deployed script gets a `…kodena.id` URL automatically. To serve it on your own hostname — `www.example.com`, `app.example.com` — attach a custom domain. You can do this from the CLI or the dashboard.
+
+## Attach the domain
+
+### With the CLI
+
+```bash
+kodena domain set my-script www.example.com
+```
+
+Kodena attaches the hostname and tells you to point a DNS record at your Kodena origin, then check the status until it's active.
+
+### From the dashboard
+
+1. Open the **Kodena dashboard** at [kodena.sawala.cloud](https://kodena.sawala.cloud) and select your script.
+2. Add your hostname (for example `www.example.com`) under the script's domain settings.
+3. Kodena registers the hostname and shows you the **DNS target** to point at, plus any validation records.
+
+## Point your DNS
+
+At your domain registrar or DNS provider, create a **CNAME** record from your hostname to the target Kodena gave you:
+
+```
+www.example.com.   CNAME   <target>.kodena.id
+```
+
+Once the record resolves, Kodena validates ownership and **provisions an SSL certificate automatically**. When validation completes, your site serves over HTTPS on your own domain.
+
+<Callout type="info">
+A root/apex domain (`example.com` with no `www`) can't always take a CNAME at every provider. Use a subdomain like `www` or `app`, or a provider that supports CNAME-flattening at the apex.
+</Callout>
+
+## Don't have a domain yet?
+
+Kodena can **register `.id` domains** for you, so you can buy and connect a domain without leaving the platform. Look for domain registration in the dashboard.
+
+## Check status
+
+Check the live state of the domain — DNS resolution, ownership validation, and SSL — from the CLI:
+
+```bash
+kodena domain status my-script          # add --json for the raw object
+```
+
+The dashboard shows the same. If a domain is stuck, it's almost always the DNS record: confirm the CNAME points at the exact target Kodena gave you. To detach a domain, use `kodena domain rm my-script` (the site stays on its `kodena.id` subdomain).
+
+See the [CLI reference](/en/docs/kodena/reference/cli) for deploying, and [What is Kodena](/en/docs/kodena/what-is-kodena) for the bigger picture.

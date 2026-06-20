@@ -1,0 +1,97 @@
+---
+title: Datana API Reference
+description: Datana's public API — base URL, key tiers, every read endpoint, the query parameters, and the one secret-key write.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The public API serves **published** records of **public** collections. Most apps use the [`@sawala/datana-client`](/en/docs/general-concepts/cli-and-sdk) SDK; this page documents the underlying HTTP surface.
+
+## Base URL
+
+```
+https://api.sawala.cloud/public/datana
+```
+
+Every path is scoped to a project and a collection:
+
+```
+/projects/{projectId}/collections/{slug}
+```
+
+## Authentication
+
+Send an [API key](/en/docs/general-concepts/api-keys-and-access) in the `X-API-Key` header:
+
+```
+X-API-Key: pk_live_xxx
+```
+
+| Key kind | Token | Can do |
+| --- | --- | --- |
+| **Publishable** | `pk_live_…` | Read public collections' published records — **public fields only**. Browser-safe. |
+| **Secret** | `sk_live_…` | Read **private fields** too, filter/sort on them, **and** the only public write (`PUT`). **Server-side only** — a secret key sent from a browser origin is rejected. |
+
+## Endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/projects/{projectId}/collections/{slug}` | Collection schema (fields & options; private fields stripped) |
+| `GET` | `/projects/{projectId}/collections/{slug}/records` | List published records |
+| `GET` | `/projects/{projectId}/collections/{slug}/records/{id}` | Fetch one published record |
+| `GET` | `/projects/{projectId}/collections/{slug}/aggregate` | Counts over published records |
+| `PUT` | `/projects/{projectId}/collections/{slug}/records/{id}` | Replace a published record's data — **secret key only** |
+
+## List query parameters
+
+`GET …/records`
+
+| Parameter | Description |
+| --- | --- |
+| `limit` | Page size, 1–100 (default 25) |
+| `cursor` | Opaque pagination cursor from the previous response |
+| `sort` | `field` (asc) or `-field` (desc). Supports `createdAt`, `id`, or any data field |
+| `filter` | **Repeatable**, ANDed. `field:value` · `field:in:a,b` · `field:gte:N` · `field:lte:N`. Array fields match by membership |
+| `populate` | Comma-separated relation field names to inline, or `*` for all relations |
+| `q` | Case-insensitive search over the record title |
+| `status` | Filter by lifecycle status |
+
+## Aggregate parameters
+
+`GET …/aggregate`
+
+| Parameter | Description |
+| --- | --- |
+| `count` | Include the total published record count → `{ total }` |
+| `groupBy` | Field to group counts by (single, or array/relation field) → `{ groups }` |
+| `distinct` | Comma-separated fields to return distinct-value counts for |
+
+## Response shape
+
+List responses carry the records under `items`, with pagination metadata:
+
+```json
+{
+  "items": [
+    { "id": "01J…", "data": { "title": "Bot Labs", "city": "Palembang" }, "status": "published" }
+  ],
+  "pagination": { "hasMore": true, "nextCursor": "…" }
+}
+```
+
+A record's `data` holds the typed field values — relations, media, and multi-selects are objects or arrays, not strings.
+
+## Errors
+
+| Status | Code | Meaning |
+| --- | --- | --- |
+| `400` | `PRIVATE_FIELD_NOT_QUERYABLE` | Filtered or sorted on a private field with a publishable key |
+| `401` | `UNAUTHORIZED` | Missing or invalid API key |
+| `403` | `SECRET_KEY_REQUIRED` | Attempted the `PUT` write with a publishable key |
+| `404` | `COLLECTION_NOT_FOUND` | Collection doesn't exist, isn't public, or belongs to another organization |
+
+<Callout type="info">
+Cross-organization access is a **404**, not a 403 — a collection that isn't yours is indistinguishable from one that doesn't exist.
+</Callout>
+
+For task-oriented examples, see [How to query records](/en/docs/datana/how-to-query-records).
