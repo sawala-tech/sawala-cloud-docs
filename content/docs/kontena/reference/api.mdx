@@ -1,13 +1,13 @@
 ---
-title: Referensi API Kontena
-description: REST API publik Kontena — semua endpoint, parameter, dan header yang Anda butuhkan untuk membaca konten.
+title: Kontena API Reference
+description: Kontena's public REST API — every endpoint, parameter, and header you need to read content.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-<Callout type="info">
-Renderer OpenAPI interaktif akan ditambahkan di sini ketika spec publik tersedia. Sementara ini, halaman menyajikan ringkasan endpoint dalam tabel.
-</Callout>
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+The Kontena public API is **read-only** and returns **published content only**.
 
 ## Base URL
 
@@ -15,94 +15,108 @@ Renderer OpenAPI interaktif akan ditambahkan di sini ketika spec publik tersedia
 https://api.sawala.cloud/public/kontena
 ```
 
-Semua endpoint di bawah ini relatif terhadap base URL ini.
+## Authentication
 
-## Header wajib
+Send your API key on every request:
 
 ```
 X-API-Key: pk_live_xxx
 ```
 
-Public key (`pk_live_…`) cukup untuk semua endpoint read di halaman ini. Lihat [cara mint API key](/id/docs/kontena/how-to-mint-api-key) untuk mendapatkan token.
+The `Authorization: Bearer <key>` form is also accepted.
 
-## Endpoint
+- A **public key** (`pk_live_…`) is read-only and browser-safe — it's all you need for every endpoint here.
+- A **secret key** (`sk_live_…`) is read/write and server-side only. It is rejected if sent with a browser `Origin`, and it does **not** unlock drafts or preview — the public API returns published content regardless of key type.
 
-### Koleksi (multiple entries)
+See [how to mint an API key](/id/docs/kontena/how-to-mint-api-key).
 
-| Method | Path | Deskripsi |
+## Endpoints
+
+### Collection (multiple entries)
+
+| Method | Path | Description |
 | --- | --- | --- |
-| `GET` | `/projects/{projId}/content/collection/{schemaSlug}` | List entri di sebuah koleksi |
-| `GET` | `/projects/{projId}/content/collection/{schemaSlug}/{id}` | Ambil satu entri berdasarkan ID |
+| `GET` | `/projects/{projId}/content/collection/{schemaSlug}` | List entries in a collection |
+| `GET` | `/projects/{projId}/content/collection/{schemaSlug}/{id}` | Fetch one entry by ID |
 
 ### Single (one entry per locale)
 
-| Method | Path | Deskripsi |
+| Method | Path | Description |
 | --- | --- | --- |
-| `GET` | `/projects/{projId}/content/single/{schemaSlug}` | Ambil entri singleton |
+| `GET` | `/projects/{projId}/content/single/{schemaSlug}` | Fetch the single entry |
 
-### Skema
+### Schemas
 
-| Method | Path | Deskripsi |
+| Method | Path | Description |
 | --- | --- | --- |
-| `GET` | `/projects/{projId}/schemas` | List semua skema di project |
-| `GET` | `/projects/{projId}/schemas/{schemaId}` | Ambil definisi satu skema |
+| `GET` | `/projects/{projId}/schemas` | List all schemas |
+| `GET` | `/projects/{projId}/schemas/{schemaId}` | Fetch one schema definition |
 
 ## Query parameters
 
-Semua endpoint `list` dan `get` menerima parameter berikut:
+These apply to the collection list endpoint.
 
-| Param | Nilai | Deskripsi |
+| Param | Values | Description |
 | --- | --- | --- |
-| `locale` | `id`, `en`, … | Filter berdasarkan locale entri |
-| `q` | string | Substring filter pada `title` dan `slug` (pencarian) |
-| `publicationState` | `live` (default), `preview` | `live` hanya entri yang sudah dipublish. `preview` membutuhkan secret key |
-| `limit` | integer (default 20, max 100) | Jumlah entri per halaman |
-| `cursor` | string | Cursor untuk halaman berikutnya (dari `meta.pagination.nextCursor` di response sebelumnya) |
+| `locale` | `id`, `en`, … | Filter by entry locale |
+| `q` | string | Case-insensitive substring filter over `slug` and `data.title` |
+| `limit` | integer (default **25**, max 100) | Entries per page |
+| `cursor` | string | Cursor for the next page (from `meta.pagination.nextCursor`) |
 
-## Format response
+## Response shape
 
-Response berbentuk JSON dengan struktur:
+The list endpoint returns a top-level `data` array plus pagination under `meta`. Each entry's own fields live inside that entry's `data` object — for example a post's title is `data.title`, **not** a top-level field.
 
 ```json
 {
-  "items": [
+  "data": [
     {
-      "id":        "ent_abc",
-      "slug":      "halo-dunia",
-      "title":     "Halo Dunia",
-      "locale":    "id",
-      "status":    "published",
-      "createdAt": "2026-05-01T10:00:00Z",
-      "updatedAt": "2026-05-01T10:30:00Z",
-      "data":      { "body": "<p>...</p>", "coverImage": { "url": "https://..." } }
+      "id":          "ent_abc",
+      "documentId":  "doc_abc",
+      "slug":        "hello-world",
+      "locale":      "en",
+      "status":      "published",
+      "data":        { "title": "Hello World", "body": "<p>...</p>", "coverImage": { "url": "https://..." } },
+      "publishedAt": "2026-05-01T10:00:00Z",
+      "createdAt":   "2026-05-01T10:00:00Z",
+      "updatedAt":   "2026-05-01T10:30:00Z"
     }
   ],
   "meta": {
-    "pagination": {
-      "limit":      20,
-      "hasMore":    true,
-      "nextCursor": "ZW50X3h5eg"
-    }
+    "pagination": { "limit": 25, "hasMore": true, "nextCursor": "ZW50X3h5eg" }
   }
 }
 ```
 
-Field `data` berisi semua field yang Anda definisikan di skema.
+Paginate by passing `meta.pagination.nextCursor` back as the `cursor` parameter while `hasMore` is `true`.
 
-## Error codes
+<Callout type="info">
+The `@sawala/kontena-client` SDK unwraps the top-level `data` into `items` and returns `{ items, pagination }`, so SDK code reads `items` while raw `fetch`/`curl` must read `data`.
+</Callout>
 
-| HTTP | Body | Penyebab |
+## Error responses
+
+Errors are flat `{ "error": "..." }` objects.
+
+| HTTP | Body | Cause |
 | --- | --- | --- |
-| `400` | `{ "error": "..." }` | Parameter atau body tidak valid |
-| `401` | `{ "error": "unauthorized" }` | Header `X-API-Key` salah atau hilang |
-| `403` | `{ "error": "forbidden" }` | Token tidak punya akses project ini |
-| `404` | `{ "error": "not found" }` | Entri / skema / project tidak ditemukan |
-| `429` | `{ "error": "rate limit exceeded" }` | Terlalu banyak request, tambahkan caching |
+| `400` | `{ "error": "<validation message>" }` | Invalid parameter |
+| `401` | `{ "error": "Unauthorized" }` | Missing or invalid API key |
+| `403` | `{ "error": "Forbidden" }` / `{ "error": "Forbidden: ..." }` | No access to the project, or a secret key sent with a browser `Origin` |
+| `404` | `{ "error": "NOT_FOUND" }` / `{ "error": "SCHEMA_NOT_FOUND" }` | Entry, project, or schema doesn't exist |
 
-## Pagination
+## SDK
 
-Pagination berbasis cursor: ambil `meta.pagination.nextCursor` dari response, lalu kirim sebagai `cursor=...` di request berikutnya. `meta.pagination.hasMore` akan `false` di halaman terakhir.
+```ts
+import { createKontenaClient } from '@sawala/kontena-client';
 
-## Rate limit
+const kontena = createKontenaClient({
+  baseUrl:      'https://api.sawala.cloud/public/kontena',
+  projectId:    'proj_xxx',
+  publicApiKey: 'pk_live_xxx',
+});
 
-Default: 100 request per menit per API key. Hubungi tim Sawala untuk menaikkan limit jika Anda butuh lebih.
+const { items, pagination } = await kontena.listCollection('post', { locale: 'en', limit: 25 });
+```
+
+See [CLI and SDK](/id/docs/general-concepts/cli-and-sdk) for installation and the wider SDK surface.

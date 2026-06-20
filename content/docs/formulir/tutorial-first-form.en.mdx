@@ -1,17 +1,15 @@
 ---
 title: Tutorial — Your first form with Formulir
-description: Create a contact form, embed it on your site, and receive the first submission — in 15 minutes.
+description: Build a contact form in the dashboard, embed it on your site with one iframe, and watch the first submission land in your inbox.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-> **TODO: translate** — Indonesian source at [`tutorial-first-form.mdx`](./tutorial-first-form.mdx).
-
-This tutorial shows how to build a simple contact form, embed it on your site, and see the first submission land in the dashboard.
+This tutorial walks through building a simple contact form, embedding it on your site, and seeing the first submission arrive in the dashboard.
 
 <Callout type="info">
-**Prerequisite.** An active Sawala Cloud account and a project.
+**Prerequisites.** An active Sawala Cloud account, a project, and a project-scoped publishable key (`pk_live_…`) for the `formulir` product. See [API keys and access](/en/docs/general-concepts/api-keys-and-access).
 </Callout>
 
 <Steps>
@@ -20,7 +18,17 @@ This tutorial shows how to build a simple contact form, embed it on your site, a
 
 ### Create the form in the dashboard
 
-(Translate the field list and settings.)
+1. Open **Formulir** in the dashboard and create a new form. Give it a name and a slug, for example `contact`.
+2. Add a few fields. Each field has a `name`, a label, and a type. For a contact form:
+   - `name` — type **text**, required
+   - `email` — type **text**, required
+   - `message` — type **richtext** or **markdown** (renders as a textarea)
+3. (Optional) Set the success behaviour: show a thank-you message, or redirect to a URL after submit.
+4. Make sure the form's visibility is **public** so it can accept submissions, then save.
+
+<Callout type="info">
+Formulir uses the shared Sawala field types: `text`, `url`, `richtext`, `markdown`, `number`, `boolean`, `date`, `relation`, `media`, `blocks`, `component`, `json`, `select`, `multiselect`, `repeater`. There is no separate `email`, `textarea`, `checkbox`, `radio`, or `file` type — use `text` for short text, `richtext`/`markdown` for long text, and `media` for file uploads.
+</Callout>
 
 </Step>
 
@@ -28,25 +36,29 @@ This tutorial shows how to build a simple contact form, embed it on your site, a
 
 ### Embed the form on your site
 
-Paste this into any HTML page on your site (swap `slug` for your form's slug):
+The quickest embed is a hosted iframe. Paste this into any HTML page, swapping in your project ID, your form's slug, and your publishable key:
 
 ```html
 <iframe
-  src="https://formulir.id/embed/your-form-slug"
+  src="https://formulir.id/embed/<projectId>/contact?key=pk_live_…"
   style="width: 100%; height: 600px; border: 0;"
   loading="lazy"
 ></iframe>
 ```
 
-For deeper integration (form rendered in your DOM, not an iframe), see [how to embed a form](/en/docs/formulir/how-to-embed-form).
+<Callout type="warn">
+The `?key=pk_live_…` query parameter is **required**. A keyless embed URL renders an error page. The key must be project-scoped to the same project that owns the form.
+</Callout>
+
+The dashboard form editor generates a ready-to-copy snippet with your project ID and key already filled in. For rendering the form in your own DOM instead of an iframe, see [how to embed a form](/en/docs/formulir/how-to-embed-form).
 
 </Step>
 
 <Step>
 
-### Submit a test
+### Submit a test response
 
-(Translate.)
+Open the page in a browser, fill in the fields, and submit. On success the iframe shows your configured thank-you message (or follows your redirect). Behind the scenes the browser posts to `https://api.sawala.cloud/public/formulir/forms/contact/submit`, which responds `201` with `{ "id": "…", "status": "received" }`.
 
 </Step>
 
@@ -54,7 +66,7 @@ For deeper integration (form rendered in your DOM, not an iframe), see [how to e
 
 ### See the submission in the dashboard
 
-(Translate.)
+Return to the form in the dashboard and open its inbox. Your test response appears there, along with its timestamp and metadata (submitter IP address and user agent). File uploads, if any, are stored and linked from the submission.
 
 </Step>
 
@@ -62,5 +74,5 @@ For deeper integration (form rendered in your DOM, not an iframe), see [how to e
 
 ## Next steps
 
-- See [how to embed a form](/en/docs/formulir/how-to-embed-form).
-- Read the [API reference](/en/docs/formulir/reference/api) to fetch submissions programmatically.
+- Explore the other embed modes — React component and script tag — in [how to embed a form](/en/docs/formulir/how-to-embed-form).
+- Submit programmatically and read the error codes in the [API reference](/en/docs/formulir/reference/api).

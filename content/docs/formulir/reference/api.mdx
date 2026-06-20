@@ -1,129 +1,119 @@
 ---
-title: Referensi API Formulir
-description: REST API publik Formulir — ambil definisi form, submit data, dan kelola submission.
+title: Formulir API Reference
+description: Formulir's public REST API — fetch a form definition and submit a response. Project-scoped publishable key required.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+The Formulir public API has exactly two endpoints: fetch a form definition, and submit a response. Reading submissions is a dashboard feature and is **not** part of the public API.
+
 <Callout type="info">
-Renderer OpenAPI interaktif akan ditambahkan ketika spec publik tersedia.
+For day-to-day embedding you usually do not call this API directly — use the [iframe, React component, or script tag](/id/docs/formulir/how-to-embed-form). This reference is for posting submissions yourself.
 </Callout>
 
-## Base URLs
-
-Formulir punya dua surface yang melayani peran berbeda:
+## Base URL
 
 ```
-Public API:     https://api.sawala.cloud/public/formulir
-Embed delivery: https://formulir.id
+https://api.sawala.cloud/public/formulir
 ```
 
-- **Public API** (`api.sawala.cloud`) — endpoint terotorisasi via `X-API-Key`. Untuk operasi seperti list submission, ambil definisi form, dll. dari server aplikasi Anda.
-- **Embed delivery** (`formulir.id`) — endpoint publik yang dipakai oleh iframe dan komponen React di browser. Otorisasi via parameter query, bukan header.
+The embed delivery host (iframe, `formulir.js`, `formulir.css`) is `https://formulir.id` — see [how to embed a form](/id/docs/formulir/how-to-embed-form).
 
-## Header wajib (Public API)
+## Authentication
+
+Send a **project-scoped publishable key** (`pk_live_…`) in the `X-API-Key` header. The key must be scoped to a single organization **and** project; an org-only key is rejected.
 
 ```
-X-API-Key: <pk_live_… atau sk_live_…>
+X-API-Key: pk_live_…
 ```
 
-## Endpoint utama
+A request whose key carries no project scope returns `400` with `{ "error": "API_KEY_REQUIRES_PROJECT_SCOPE" }`. A bad or revoked key returns `401`. See [API keys and access](/id/docs/general-concepts/api-keys-and-access) and [CLI and SDK](/id/docs/general-concepts/cli-and-sdk).
 
-### Definisi form
+## Endpoints
 
-| Method | URL | Auth | Deskripsi |
-| --- | --- | --- | --- |
-| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}` | Public key | Ambil definisi satu form (fields + settings) |
+### Get a form definition
 
-Response:
+```
+GET /forms/{slug}
+```
+
+Returns the form's fields and settings. Use this to render the form yourself.
+
+### Submit a response
+
+```
+POST /forms/{slug}/submit
+```
+
+On success returns **`201`** with:
+
+```json
+{ "id": "…", "status": "received" }
+```
+
+`id` is a UUID identifying the stored submission.
+
+## Submit body
+
+Send the field values as JSON. The canonical form wraps them in a `data` object:
 
 ```json
 {
-  "id":          "frm_abc123",
-  "slug":        "kontak-kami",
-  "name":        "Kontak Kami",
-  "description": "Form kontak resmi",
-  "fields": [
-    { "type": "text",     "name": "nama",   "label": "Nama",   "required": true },
-    { "type": "email",    "name": "email",  "label": "Email",  "required": true },
-    { "type": "textarea", "name": "pesan",  "label": "Pesan",  "required": true }
-  ],
-  "settings": {
-    "redirectUrl": "https://situsanda.com/terima-kasih",
-    "botProtection": true
+  "data": {
+    "name": "Ada Lovelace",
+    "email": "ada@example.com",
+    "message": "Hello!"
   }
 }
 ```
 
-### Submission
+A flat `{ "field": value }` object (no `data` wrapper) is also accepted. Keys match each field's `name`.
 
-| Method | URL | Auth | Deskripsi |
-| --- | --- | --- | --- |
-| `POST` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions` | Public key | Submit data ke form |
-| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions?limit=&cursor=` | Secret key | List submission untuk form ini |
-| `GET` | `api.sawala.cloud/public/formulir/submissions/{id}` | Secret key | Ambil satu submission |
-
-Submit body adalah JSON object dengan key sesuai `name` di field definition:
-
-```json
-{
-  "nama":  "Budi Santoso",
-  "email": "budi@example.com",
-  "pesan": "Halo, saya tertarik dengan produk Anda."
-}
+```bash
+curl -X POST https://api.sawala.cloud/public/formulir/forms/contact/submit \
+  -H "X-API-Key: pk_live_…" \
+  -H "Content-Type: application/json" \
+  -d '{ "data": { "name": "Ada", "email": "ada@example.com", "message": "Hello!" } }'
 ```
 
-Response submit:
+## File upload fields
 
-```json
-{
-  "id":     "sub_xyz789",
-  "status": "received"
-}
+For `media` fields, submit the request as **`multipart/form-data`** in a single request — include the file alongside the other fields. Formulir stores the file for you; there is no separate upload step or `assetId` to manage.
+
+```bash
+curl -X POST https://api.sawala.cloud/public/formulir/forms/contact/submit \
+  -H "X-API-Key: pk_live_…" \
+  -F "name=Ada" \
+  -F "resume=@./resume.pdf"
 ```
 
-## File upload field
+## Spam protection
 
-Untuk field bertipe `file`, alur submit-nya dua langkah:
-
-1. Upload file dulu ke endpoint upload Formulir (sama seperti [presigned upload Berkasna](/id/docs/berkasna/tutorial-first-upload)), dapat `assetId`.
-2. Kirim submission dengan `assetId` sebagai nilai field tersebut.
-
-## Embed URLs (formulir.id)
-
-| URL | Otentikasi | Deskripsi |
-| --- | --- | --- |
-| `formulir.id/embed/{slug}` | Public (slug saja) | Form iframe-embeddable; HTML siap pasang |
-| `formulir.id/formulir.js` | Public | Script untuk pola embed `<script>` |
-
-Embed URLs tidak menerima `X-API-Key` header. Otorisasinya implisit via slug — slug bersifat publik dan tidak rahasia. Untuk membatasi siapa yang boleh submit, gunakan fitur **proteksi bot** di settings form.
+If a form has Cloudflare Turnstile enabled, include the challenge token in the submission under the key `cf-turnstile-response`. See [spam protection](/id/docs/formulir/how-to-embed-form#spam-protection-turnstile) for setup.
 
 ## Error codes
 
-| HTTP | Penyebab |
-| --- | --- |
-| `400` | Field wajib tidak diisi, atau format nilai field salah (misal email tidak valid) |
-| `401` | API key salah atau hilang (Public API) |
-| `403` | Token tidak punya akses form ini |
-| `404` | Form tidak ditemukan |
-| `422` | Validasi field gagal — body response memuat detail error per field |
-| `429` | Rate limit terlampaui |
+Errors are returned as a flat `{ "error": "CODE" }` body.
 
-### Format error 422
-
-```json
-{
-  "error":  "validation_failed",
-  "fields": {
-    "email": "Format email tidak valid",
-    "pesan": "Wajib diisi"
-  }
-}
-```
+| HTTP | `error` | Cause |
+| --- | --- | --- |
+| `400` | `API_KEY_REQUIRES_PROJECT_SCOPE` | Key is not scoped to a project |
+| `400` | `INVALID_JSON` | Request body is not valid JSON |
+| `400` | `CAPTCHA_REQUIRED` | Form requires Turnstile but no token was sent |
+| `401` | — | Missing, invalid, or revoked API key |
+| `403` | `FORM_PRIVATE` | Form visibility is set to private |
+| `403` | `CAPTCHA_FAILED` | Turnstile token was rejected |
+| `404` | `FORM_NOT_FOUND` | No published form matches the slug |
+| `413` | — | Payload too large |
+| `429` | `RATE_LIMITED` | Submission rate limit exceeded |
+| `503` | `CAPTCHA_NOT_CONFIGURED` | Form has Turnstile enabled but the project has no Turnstile keys saved |
 
 ## Rate limit
 
-- **Submit (`POST`):** 30 submission per menit per IP per form.
-- **List/get submission (Public API):** 100 request per menit per API key.
+Submissions are limited to **60 per minute, per API key, per form**. Over the limit, the gateway returns `429` with `{ "error": "RATE_LIMITED" }`.
 
-Hubungi tim Sawala untuk menaikkan limit jika Anda butuh lebih.
+## Stored metadata
+
+Each submission is stored with its timestamp, the submitter's IP address, and user agent. Submissions and any uploaded files are viewable in the dashboard inbox.

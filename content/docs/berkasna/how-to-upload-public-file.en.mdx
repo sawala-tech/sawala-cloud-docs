@@ -1,37 +1,78 @@
 ---
 title: How to upload a public file
-description: The minimal upload-and-share pattern — three API calls, one public URL ready to use.
+description: The minimal upload-and-share pattern — three calls to store an image, then one call to read its public URL.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-> **TODO: translate** — Indonesian source at [`how-to-upload-public-file.mdx`](./how-to-upload-public-file.mdx).
+When you need to accept an image, store it as a public asset in Berkasna, and serve it by URL — use the pattern below. The upload itself is three calls; reading the public URL is one more.
 
-When you need to accept a user upload, store it in Berkasna, and immediately get back a public URL — use the three-call pattern below.
+<Callout type="warn">
+**Public API uploads are images only, up to 5 MB.** Allowed types: `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`. A bad type returns `400 UNSUPPORTED_MEDIA_TYPE`; an oversized file returns `400 FILE_TOO_LARGE`.
+</Callout>
 
 ## Steps
 
-1. **Request an upload slot** from your app (server-side, secret key):
+1. **Request an upload slot** from your server, using a **secret** key. Mark it public so it gets a `berkasna.sawala.cloud` URL.
 
    ```bash
-   POST https://api.sawala.cloud/public/berkasna/upload/presigned
-   X-API-Key: sk_live_xxx
+   curl -X POST \
+     -H "X-API-Key: sk_live_xxx" \
+     -H "Content-Type: application/json" \
+     -d '{"filename":"logo.png","mimeType":"image/png","size":12345}' \
+     "https://api.sawala.cloud/public/berkasna/upload/presigned"
    ```
 
-2. **PUT the file to `uploadUrl`** from the browser.
+   The response includes `assetId`, `r2Key`, and a temporary `uploadUrl`. A publishable key here is rejected with `403 SECRET_KEY_REQUIRED`.
 
-3. **Mark complete** from your app server.
+2. **PUT the file bytes** to the returned `uploadUrl`. Send **no** API key on this request.
 
-(Translate full explanation.)
+   ```js
+   await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+   ```
 
-<Callout type="warn">
-**`uploadUrl` expires in ~15 minutes.** Request a new slot if the user is slow.
+3. **Mark complete** from your server, with the secret key:
+
+   ```bash
+   curl -X POST \
+     -H "X-API-Key: sk_live_xxx" \
+     -H "Content-Type: application/json" \
+     -d '{"assetId":"ast_abc123"}' \
+     "https://api.sawala.cloud/public/berkasna/upload/complete"
+   ```
+
+   The response is `{ "id": "ast_abc123", "status": "completed" }` — note there is **no** URL in it.
+
+## Get the public URL
+
+The complete response does not return a URL. Fetch the asset to read its computed `url` (a public key works here):
+
+```bash
+curl -H "X-API-Key: pk_live_xxx" \
+  "https://api.sawala.cloud/public/berkasna/assets/ast_abc123"
+```
+
+```json
+{
+  "id":     "ast_abc123",
+  "status": "completed",
+  "url":    "https://berkasna.sawala.cloud/acme/originals/ast_abc123/logo.png"
+}
+```
+
+The public URL pattern is `https://berkasna.sawala.cloud/<org-slug>/originals/<assetId>/<filename>`. You can also build it directly from the `r2Key` returned in step 1.
+
+<Callout type="info">
+**`uploadUrl` expires in about 15 minutes.** If the user is slow, request a fresh slot rather than reusing an expired URL.
 </Callout>
-
-## Client-side validation
-
-(Translate.)
 
 ## Deduplication
 
-Compute a SHA-256 of the file in the browser and check `/upload/check-duplicate?hash=...` before requesting a slot.
+Compute a SHA-256 of the file and check `/check-duplicate?hash=...` before requesting a slot.
+
+```bash
+curl -H "X-API-Key: pk_live_xxx" \
+  "https://api.sawala.cloud/public/berkasna/check-duplicate?hash=<sha256>"
+```
+
+The response is `{ "isDuplicate": true, "assetId": "ast_abc123" }`. It does not include a URL — if you need one for the existing asset, call `GET /assets/{assetId}`.

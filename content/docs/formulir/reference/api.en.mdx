@@ -1,91 +1,117 @@
 ---
 title: Formulir API Reference
-description: Formulir's public REST API — fetch form definitions, submit data, manage submissions.
+description: Formulir's public REST API — fetch a form definition and submit a response. Project-scoped publishable key required.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-> **TODO: translate** — Indonesian source at [`api.mdx`](./api.mdx).
+The Formulir public API has exactly two endpoints: fetch a form definition, and submit a response. Reading submissions is a dashboard feature and is **not** part of the public API.
 
 <Callout type="info">
-An interactive OpenAPI renderer will be added once the public spec is exposed.
+For day-to-day embedding you usually do not call this API directly — use the [iframe, React component, or script tag](/en/docs/formulir/how-to-embed-form). This reference is for posting submissions yourself.
 </Callout>
 
-## Base URLs
+## Base URL
 
 ```
-Public API:     https://api.sawala.cloud/public/formulir
-Embed delivery: https://formulir.id
+https://api.sawala.cloud/public/formulir
 ```
 
-- **Public API** — `X-API-Key`-authorized. List submissions, fetch form definitions, etc.
-- **Embed delivery** — public, used by iframe and React component in the browser.
+The embed delivery host (iframe, `formulir.js`, `formulir.css`) is `https://formulir.id` — see [how to embed a form](/en/docs/formulir/how-to-embed-form).
 
-## Required header (Public API)
+## Authentication
+
+Send a **project-scoped publishable key** (`pk_live_…`) in the `X-API-Key` header. The key must be scoped to a single organization **and** project; an org-only key is rejected.
 
 ```
-X-API-Key: <pk_live_… or sk_live_…>
+X-API-Key: pk_live_…
 ```
+
+A request whose key carries no project scope returns `400` with `{ "error": "API_KEY_REQUIRES_PROJECT_SCOPE" }`. A bad or revoked key returns `401`. See [API keys and access](/en/docs/general-concepts/api-keys-and-access) and [CLI and SDK](/en/docs/general-concepts/cli-and-sdk).
 
 ## Endpoints
 
-### Form definition
+### Get a form definition
 
-| Method | URL | Auth | Description |
-| --- | --- | --- | --- |
-| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}` | Public key | Fetch form definition (fields + settings) |
+```
+GET /forms/{slug}
+```
 
-### Submissions
+Returns the form's fields and settings. Use this to render the form yourself.
 
-| Method | URL | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions` | Public key | Submit data |
-| `GET` | `api.sawala.cloud/public/formulir/forms/{slug}/submissions?limit=&cursor=` | Secret key | List submissions for a form |
-| `GET` | `api.sawala.cloud/public/formulir/submissions/{id}` | Secret key | Fetch one submission |
+### Submit a response
 
-### Embed URLs (formulir.id)
+```
+POST /forms/{slug}/submit
+```
 
-| URL | Auth | Description |
-| --- | --- | --- |
-| `formulir.id/embed/{slug}` | Public (slug only) | Iframe-embeddable form |
-| `formulir.id/formulir.js` | Public | Script tag embed |
+On success returns **`201`** with:
+
+```json
+{ "id": "…", "status": "received" }
+```
+
+`id` is a UUID identifying the stored submission.
 
 ## Submit body
 
-```json
-{ "name": "...", "email": "...", "message": "..." }
-```
-
-Keys match `name` in each field definition.
-
-## File upload fields
-
-(Translate: two-step flow — upload to Formulir's upload endpoint to get `assetId`, then submit with `assetId` as the field value.)
-
-## Error codes
-
-| HTTP | Cause |
-| --- | --- |
-| `400` | Required field missing or invalid format |
-| `401` | Wrong/missing API key (Public API) |
-| `403` | Token has no access |
-| `404` | Form not found |
-| `422` | Field validation failed — body has per-field errors |
-| `429` | Rate limit exceeded |
-
-### `422` body
+Send the field values as JSON. The canonical form wraps them in a `data` object:
 
 ```json
 {
-  "error":  "validation_failed",
-  "fields": {
-    "email":   "Invalid email format",
-    "message": "Required"
+  "data": {
+    "name": "Ada Lovelace",
+    "email": "ada@example.com",
+    "message": "Hello!"
   }
 }
 ```
 
-## Rate limits
+A flat `{ "field": value }` object (no `data` wrapper) is also accepted. Keys match each field's `name`.
 
-- **Submit:** 30/min per IP per form.
-- **List/get (Public API):** 100/min per API key.
+```bash
+curl -X POST https://api.sawala.cloud/public/formulir/forms/contact/submit \
+  -H "X-API-Key: pk_live_…" \
+  -H "Content-Type: application/json" \
+  -d '{ "data": { "name": "Ada", "email": "ada@example.com", "message": "Hello!" } }'
+```
+
+## File upload fields
+
+For `media` fields, submit the request as **`multipart/form-data`** in a single request — include the file alongside the other fields. Formulir stores the file for you; there is no separate upload step or `assetId` to manage.
+
+```bash
+curl -X POST https://api.sawala.cloud/public/formulir/forms/contact/submit \
+  -H "X-API-Key: pk_live_…" \
+  -F "name=Ada" \
+  -F "resume=@./resume.pdf"
+```
+
+## Spam protection
+
+If a form has Cloudflare Turnstile enabled, include the challenge token in the submission under the key `cf-turnstile-response`. See [spam protection](/en/docs/formulir/how-to-embed-form#spam-protection-turnstile) for setup.
+
+## Error codes
+
+Errors are returned as a flat `{ "error": "CODE" }` body.
+
+| HTTP | `error` | Cause |
+| --- | --- | --- |
+| `400` | `API_KEY_REQUIRES_PROJECT_SCOPE` | Key is not scoped to a project |
+| `400` | `INVALID_JSON` | Request body is not valid JSON |
+| `400` | `CAPTCHA_REQUIRED` | Form requires Turnstile but no token was sent |
+| `401` | — | Missing, invalid, or revoked API key |
+| `403` | `FORM_PRIVATE` | Form visibility is set to private |
+| `403` | `CAPTCHA_FAILED` | Turnstile token was rejected |
+| `404` | `FORM_NOT_FOUND` | No published form matches the slug |
+| `413` | — | Payload too large |
+| `429` | `RATE_LIMITED` | Submission rate limit exceeded |
+| `503` | `CAPTCHA_NOT_CONFIGURED` | Form has Turnstile enabled but the project has no Turnstile keys saved |
+
+## Rate limit
+
+Submissions are limited to **60 per minute, per API key, per form**. Over the limit, the gateway returns `429` with `{ "error": "RATE_LIMITED" }`.
+
+## Stored metadata
+
+Each submission is stored with its timestamp, the submitter's IP address, and user agent. Submissions and any uploaded files are viewable in the dashboard inbox.

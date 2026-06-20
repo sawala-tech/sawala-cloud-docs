@@ -1,0 +1,72 @@
+---
+title: Add membership to a React app
+description: Drop sign-in into a React site with the Akuna embed and a single Sawala API key — no auth backend, no Clerk key in your source.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+In this tutorial you'll add member sign-in to a React app. The embed boots your connected Clerk app from a single Sawala API key — you never hardcode a Clerk key or write a backend. Budget about fifteen minutes.
+
+**Prerequisite:** your project needs an active **Akuna connection** to a Clerk application. If you haven't set that up, do [Connect your Clerk app](/id/docs/akuna/how-to-connect-clerk) first.
+
+## 1. Mint an API key
+
+In the [dashboard](https://sawala.cloud/dashboard), open **Organization Settings → API Keys** and create a **publishable** key (`pk_live_…`) scoped to your project and the Akuna product. This key is safe in the browser.
+
+## 2. Install the package
+
+```bash
+npm install @sawala/akuna-react @clerk/clerk-react react react-dom
+```
+
+`@clerk/clerk-react`, `react`, and `react-dom` are peer dependencies.
+
+## 3. Wrap your app
+
+`<MembershipProvider>` fetches your connection's public config with the API key and boots Clerk:
+
+```tsx
+import {
+  MembershipProvider,
+  SignedIn,
+  SignedOut,
+  SignIn,
+  UserButton,
+  useMember,
+} from '@sawala/akuna-react'
+
+export default function App() {
+  return (
+    <MembershipProvider apiKey="pk_live_xxx">
+      <SignedOut>
+        <SignIn routing="hash" />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+        <Profile />
+      </SignedIn>
+    </MembershipProvider>
+  )
+}
+
+function Profile() {
+  const { member, isLoaded } = useMember()
+  if (!isLoaded) return null
+  return <p>Signed in as {member?.email}</p>
+}
+```
+
+## 4. Sign up a member
+
+Run your app and complete a registration. The new member is **mirrored into your Sawala member directory** automatically — you can browse it in the dashboard.
+
+<Callout type="info">
+No Clerk key lives in your source, and there's no server to run. The embed asks Sawala for the connection's public config at boot using only the API key.
+</Callout>
+
+## What's next
+
+- [Connect your Clerk app](/id/docs/akuna/how-to-connect-clerk) — set up the connection and the member-sync webhook.
+- [API reference](/id/docs/akuna/reference/api) — the `/config` endpoint and the package's exports.

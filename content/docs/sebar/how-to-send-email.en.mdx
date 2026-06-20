@@ -1,0 +1,79 @@
+---
+title: How to send email
+description: Personalize sends with variables, send without a template, set a reply-to, and tag messages for filtering — all through the Sebar send endpoint.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Every send is one `POST` to:
+
+```
+https://api.sawala.cloud/public/sebar/notifications/send
+```
+
+with an [API key](/en/docs/general-concepts/api-keys-and-access) in `X-API-Key`. Send from your server. The recipes below cover the common variations.
+
+## Personalize with a template
+
+Reference a template by slug and pass `variables` for its `{{placeholders}}`:
+
+```json
+{
+  "templateId": "welcome",
+  "to": { "email": "ada@example.com", "name": "Ada" },
+  "variables": { "name": "Ada", "plan": "Pro" }
+}
+```
+
+Variable values can be strings, numbers, or booleans.
+
+## Send without a template
+
+For one-off messages, skip the template and pass an inline `subject` plus an HTML and/or text body:
+
+```json
+{
+  "to": { "email": "ada@example.com" },
+  "subject": "Your export is ready",
+  "bodyHtml": "<p>Your export finished. <a href=\"…\">Download</a></p>",
+  "bodyText": "Your export finished: …"
+}
+```
+
+<Callout type="info">
+Each send needs **either** a `templateId` **or** an inline `subject` with `bodyHtml`/`bodyText`. Provide at least one of the two body formats.
+</Callout>
+
+## Set the sender and reply-to
+
+`from` and `replyTo` are optional and take the same `{ email, name }` shape as `to`:
+
+```json
+{
+  "templateId": "welcome",
+  "to": { "email": "ada@example.com" },
+  "from": { "email": "hello@acme.com", "name": "Acme" },
+  "replyTo": { "email": "support@acme.com" }
+}
+```
+
+## Tag messages for filtering
+
+Use `tags` and `metadata` to label sends so you can slice your activity later:
+
+```json
+{
+  "templateId": "welcome",
+  "to": { "email": "ada@example.com" },
+  "tags": ["onboarding"],
+  "metadata": { "campaign": "spring", "userId": "u_123" }
+}
+```
+
+`metadata` values are strings.
+
+## Track delivery
+
+A message advances `queued → sent → delivered`, or lands in `bounced`, `spam`, `suppressed`, or `failed`. You watch this — and read each message's delivery log — in the **Sebar dashboard**. Hard bounces and spam complaints automatically add the address to your organization's **suppression list**, so Sebar won't keep mailing an address that rejected you.
+
+See the [API reference](/en/docs/sebar/reference/api) for the complete request body and status list.

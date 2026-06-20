@@ -1,13 +1,11 @@
 ---
-title: Referensi API Berkasna
-description: REST API publik Berkasna — endpoint upload, listing, dan asset metadata.
+title: Berkasna API Reference
+description: Berkasna's public REST API — presigned upload, completion, duplicate check, listing, and asset metadata.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-<Callout type="info">
-Renderer OpenAPI interaktif akan ditambahkan ketika spec publik tersedia.
-</Callout>
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
 
 ## Base URL
 
@@ -15,102 +13,141 @@ Renderer OpenAPI interaktif akan ditambahkan ketika spec publik tersedia.
 https://api.sawala.cloud/public/berkasna
 ```
 
-## Header wajib
+## Authentication
+
+Send your API key with every request:
 
 ```
-X-API-Key: <pk_live_… atau sk_live_…>
+X-API-Key: <pk_live_… or sk_live_…>
 ```
 
-Endpoint **upload** memerlukan secret key (`sk_live_…`); endpoint **list/get asset** menerima public key.
+`Authorization: Bearer <key>` is also accepted. The presigned-upload and complete endpoints require a **secret** key; a publishable key there returns `403 SECRET_KEY_REQUIRED`. Listing, get-asset, and duplicate-check accept a public key. See [API keys and access](/id/docs/general-concepts/api-keys-and-access).
 
-## Endpoint
+## Endpoints
 
 ### Upload
 
-| Method | Path | Auth | Deskripsi |
+| Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| `GET` | `/upload/check-duplicate?hash={sha256}` | Public | Cek apakah aset dengan hash tersebut sudah ada |
-| `POST` | `/upload/presigned` | Secret | Minta slot upload (presigned URL) |
-| `POST` | `/upload/complete` | Secret | Tandai upload selesai |
+| `POST` | `/upload/presigned` | Secret | Request an upload slot (temporary upload URL) |
+| `POST` | `/upload/complete` | Secret | Mark an upload complete |
+| `GET` | `/check-duplicate?hash={sha256}` | Public | Check whether an asset with this hash already exists |
 
 ### Assets
 
-| Method | Path | Auth | Deskripsi |
+| Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| `GET` | `/assets?limit=&cursor=&mimeCategory=` | Public | List aset di project |
-| `GET` | `/assets/{id}` | Public | Ambil satu aset beserta metadata-nya |
+| `GET` | `/assets?limit=&cursor=&mimeCategory=` | Public | List assets (paginated) |
+| `GET` | `/assets/{id}` | Public | Fetch one asset with metadata, including its public `url` |
 
-## Request body — `POST /upload/presigned`
+## `POST /upload/presigned`
+
+Request body:
 
 ```json
-{
-  "filename": "hero.jpg",
-  "mimeType": "image/jpeg",
-  "size":     523456
-}
+{ "filename": "hero.png", "mimeType": "image/png", "size": 523456 }
 ```
+
+Optional field: `folderId`.
 
 Response:
 
 ```json
 {
   "assetId":   "ast_abc123",
-  "r2Key":     "uploads/2026/05/hero.jpg",
-  "uploadUrl": "https://upload.sawala.cloud/...?X-Amz-Signature=...",
-  "expiresAt": "2026-05-16T10:30:00Z"
+  "r2Key":     "acme/originals/ast_abc123/hero.png",
+  "uploadUrl": "https://...",
+  "expiresAt": "2026-06-20T10:30:00Z"
 }
 ```
 
-`uploadUrl` berlaku ~15 menit. Setelah expired, minta slot baru.
+`uploadUrl` is a temporary URL valid for about 15 minutes (900 seconds). `PUT` the raw file bytes to it with **no** API key. The public URL of a completed public asset is `https://berkasna.sawala.cloud/<r2Key>`.
+
+## `POST /upload/complete`
+
+Request body:
+
+```json
+{ "assetId": "ast_abc123" }
+```
+
+Optional fields: `fileHash`, `width`, `height`.
+
+Response (status only — no `url`):
+
+```json
+{ "id": "ast_abc123", "status": "completed" }
+```
+
+To read the public URL, call `GET /assets/{id}`.
+
+## `GET /check-duplicate`
+
+```
+GET /check-duplicate?hash=<sha256>
+```
+
+Response:
+
+```json
+{ "isDuplicate": true, "assetId": "ast_abc123" }
+```
+
+There is no URL in this response. To get the URL for an existing asset, call `GET /assets/{assetId}`.
 
 ## Asset model
 
 ```json
 {
-  "id":          "ast_abc123",
-  "orgId":       "org_xxx",
-  "filename":    "hero.jpg",
-  "mimeType":    "image/jpeg",
-  "size":        523456,
-  "r2Key":       "uploads/2026/05/hero.jpg",
-  "status":      "completed",
-  "url":         "https://files.sawala.cloud/proj_xxx/uploads/2026/05/hero.jpg",
-  "title":       null,
-  "description": null,
-  "alt":         null,
-  "tags":        [],
-  "width":       1920,
-  "height":      1080,
-  "createdAt":   "2026-05-16T10:25:00Z",
-  "updatedAt":   "2026-05-16T10:25:00Z"
+  "id":        "ast_abc123",
+  "filename":  "hero.png",
+  "mimeType":  "image/png",
+  "size":      523456,
+  "status":    "completed",
+  "url":       "https://berkasna.sawala.cloud/acme/originals/ast_abc123/hero.png",
+  "title":     null,
+  "alt":       null,
+  "tags":      [],
+  "width":     1920,
+  "height":    1080,
+  "createdAt": "2026-06-20T10:25:00Z"
 }
 ```
 
-Field `status` bernilai `pending` (slot diminta, belum ada PUT), `completed` (sudah di-PUT dan dikonfirmasi), atau `deleted`.
+An asset's `status` is `pending` while bytes are in flight and `completed` once the upload is marked complete. The public `url` is present for public, completed assets; it follows the pattern `https://berkasna.sawala.cloud/<org-slug>/originals/<assetId>/<filename>`.
 
-`width` dan `height` hanya tersedia untuk image dan video.
+## Listing query parameters
 
-## Query parameters — listing
-
-| Param | Nilai | Deskripsi |
+| Param | Values | Description |
 | --- | --- | --- |
-| `limit` | integer (default 20, max 100) | Aset per halaman |
-| `cursor` | string | Cursor untuk halaman berikutnya |
-| `mimeCategory` | `image`, `video`, `pdf`, `document` | Filter berdasarkan kategori |
+| `limit` | integer (default 25, max 100) | Assets per page |
+| `cursor` | string | Cursor for the next page |
+| `mimeCategory` | MIME-type prefix, e.g. `image`, `video`, `application` | Filter by MIME-type prefix |
 
-## Batasan
+`mimeCategory` is a prefix match — it matches assets whose MIME type starts with `<value>/` (for example `image` matches `image/png` and `image/webp`). Use the actual MIME prefix; values like `pdf` or `document` will not match (the underlying types are `application/pdf`, etc.).
 
-- **Ukuran file maksimum:** 200 MB
-- **MIME types diterima:** `image/*`, `video/mp4`, `video/webm`, `video/quicktime`, `application/pdf`, dokumen Office (Word, Excel, PowerPoint)
-- **Rate limit upload:** 60 request `presigned` per menit per API key
+## Limits (public API)
+
+- **Accepted types:** `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`
+- **Max file size:** 5 MB
+
+<Callout type="info">
+These image-only / 5 MB limits apply to the **public API**. Other formats and larger files are handled through the dashboard, not this surface.
+</Callout>
 
 ## Error codes
 
-| HTTP | Penyebab |
-| --- | --- |
-| `400` | Body tidak valid, MIME type tidak didukung, atau ukuran melebihi 200 MB |
-| `401` | API key salah atau hilang |
-| `403` | Token tidak punya akses project, atau public key dipakai untuk endpoint yang butuh secret |
-| `404` | Aset tidak ditemukan |
-| `409` | `POST /upload/complete` dipanggil sebelum file ter-PUT |
-| `429` | Rate limit terlampaui |
+Errors are returned as a flat object:
+
+```json
+{ "error": "CODE" }
+```
+
+| HTTP | `error` | Cause |
+| --- | --- | --- |
+| `400` | (validation) | Invalid request body |
+| `400` | `UNSUPPORTED_MEDIA_TYPE` | MIME type not in the allowed image list |
+| `400` | `FILE_TOO_LARGE` | File exceeds 5 MB |
+| `401` | — | Missing or invalid API key |
+| `403` | `SECRET_KEY_REQUIRED` | Publishable key used on `/upload/presigned` or `/upload/complete` |
+| `404` | `ASSET_NOT_FOUND` | No asset with that id |

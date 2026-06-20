@@ -1,36 +1,48 @@
 ---
-title: Apa itu Kontena
-description: Kontena adalah headless CMS Sawala Cloud — pengenalan singkat, kapan dipakai, dan apa bedanya dengan CMS lain.
+title: What is Kontena
+description: Kontena is Sawala Cloud's headless CMS — a short introduction, when to use it, and how it differs from other CMSes.
 ---
 
-**Kontena** adalah _headless CMS_ — Content Management System tanpa tampilan bawaan — yang menjadi bagian dari platform Sawala Cloud. Editor mendefinisikan _skema_ (struktur konten — misalnya skema `post` dengan field `title`, `body`, dan `coverImage`), lalu mengisi _entri_ ke dalamnya. Setiap entri dapat dibaca lewat REST API publik dari sisi mana pun: situs Next.js, aplikasi mobile, atau bahkan dari spreadsheet.
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
 
-## Kapan memilih Kontena
+**Kontena** is Sawala Cloud's _headless CMS_ — a Content Management System with no built-in front-end. Editors define _schemas_ (content shapes, e.g. a `post` with a `title`, `body`, and `coverImage`) and fill in _entries_ against them. Each published entry is then readable through a public REST API from anywhere — your website, mobile app, or another service.
 
-Pilih Kontena ketika tim Anda perlu memisahkan **konten** dari **tampilan**:
+Because Kontena ships no theme or template, you stay in full control of how content is rendered. The dashboard is for editing; your code decides the presentation.
 
-- Tim editorial mengelola berita, artikel, atau halaman di dashboard Sawala Cloud — tanpa harus menyentuh kode.
-- Tim frontend membangun situs publik dengan framework apa pun (Next.js, Nuxt, Astro, atau HTML murni) dan mengambil data dari Kontena via API.
+## When to choose Kontena
 
-Kasus penggunaan yang cocok: blog perusahaan, dokumentasi produk yang sering berubah, katalog konten multi-bahasa, dan situs landing yang isinya diperbarui rutin oleh non-engineer.
+- You want non-technical editors to manage content without touching code.
+- You render content yourself — a static site, a single-page app, a mobile app, or a server — and just need a clean read API.
+- You need the same content in more than one language.
+- You want media (images, video, documents) managed alongside text, backed by [Berkasna](/id/docs/berkasna/what-is-berkasna).
 
-## Konsep inti
+## Core concepts
 
-- **Skema** — struktur konten. Mirip "Content Type" di Contentful atau "Custom Post Type" di WordPress. Anda mendefinisikan field-field yang membentuk satu entri.
-- **Koleksi** — banyak entri per skema. Contoh: skema `post` berisi banyak artikel.
-- **Single** — satu entri per locale per skema. Contoh: `homepage` atau `site-settings`.
-- **API key publik** — token read-only untuk dipakai dari sisi klien (frontend). Kontena juga mendukung secret key untuk operasi read/write dari sisi server.
+- **Schema** — a content type. Its `type` is either `single` or `collection`.
+- **Collection** — a schema that holds many entries (e.g. blog posts, products).
+- **Single** — a schema that holds one entry per locale (e.g. a homepage, an "About" page).
+- **Entry status** — every entry is either `draft` or `published`. The public API only ever returns `published` content.
+- **Public API key** — a read-only token (`pk_live_…`) that is safe to use from a browser. See [API keys and access](/id/docs/general-concepts/api-keys-and-access).
+
+Schemas live inside a project, and projects belong to an organization. See [organizations and projects](/id/docs/general-concepts/organizations-and-projects) for how that hierarchy works.
 
 ## Field types
 
-Kontena mendukung 14 jenis field: `text`, `richtext`, `markdown`, `number`, `boolean`, `date`, `select`, `multiselect`, `relation`, `media`, `json`, `repeater`, `blocks`, dan `component`. Field `media` terintegrasi dengan [Berkasna](/id/docs/berkasna/what-is-berkasna) untuk upload dan pengelolaan aset.
+Kontena supports **15** field types:
 
-## Status publikasi
+`text`, `url`, `richtext`, `markdown`, `number`, `boolean`, `date`, `relation`, `media`, `blocks`, `component`, `json`, `select`, `multiselect`, and `repeater`.
 
-Setiap entri memiliki status `draft` atau `published`. Saat memanggil API publik, gunakan query parameter `publicationState=live` untuk hanya mengambil entri yang sudah diterbitkan, atau `publicationState=preview` (dengan secret key) untuk juga melihat draft.
+The `media` field type is wired directly to [Berkasna](/id/docs/berkasna/what-is-berkasna), so images and documents you reference in an entry are managed and served by Sawala Cloud's media product.
 
-## Multi-bahasa
+## Publication status
 
-Skema `single` menyimpan satu entri per locale — misalnya satu `homepage` versi Indonesia dan satu versi Inggris. Skema `collection` menggunakan parameter `locale` untuk memfilter entri berdasarkan bahasa.
+Every entry is either a **draft** or **published**. Drafts are visible in the dashboard while you work on them; only **published** entries are returned by the public API. This is true for any key — a secret key does not unlock drafts or a preview mode over the public surface. When you are ready, publish the entry from the dashboard and it becomes readable through the API.
 
-Lanjut ke [tutorial pertama](/id/docs/kontena/tutorial-first-blog) untuk membangun blog Anda dalam 15 menit.
+## Multi-language
+
+Kontena is multi-language by design:
+
+- A **single** schema stores one entry per locale — you maintain one `homepage` for `en` and one for `id`, for example.
+- A **collection** is filtered by locale at read time using the `locale` query parameter, so each locale's entries are returned independently.
+
+Continue to the [first tutorial](/id/docs/kontena/tutorial-first-blog) to build your first blog in 15 minutes.

@@ -1,6 +1,9 @@
 {
   "title": "Sebar",
   "pages": [
-    "what-is-sebar"
+    "what-is-sebar",
+    "tutorial-first-email",
+    "how-to-send-email",
+    "reference"
   ]
 }

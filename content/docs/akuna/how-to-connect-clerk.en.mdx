@@ -1,0 +1,36 @@
+---
+title: How to connect your Clerk app
+description: Link your own Clerk application to a Sawala project so the embed can boot it and members mirror into your directory.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Akuna doesn't replace authentication — it wraps **your** Clerk application. A **connection** links one Clerk app to a Sawala scope (a project, or the whole organization). Once it's in place, the [embed](/en/docs/akuna/tutorial-first-membership) can boot sign-in and new members mirror into your directory.
+
+## 1. Have a Clerk application
+
+Create an application in your own [Clerk](https://clerk.com) account (or use an existing one). You'll need its **publishable key** and **secret key**.
+
+## 2. Create the connection
+
+In the Sawala [dashboard](https://sawala.cloud/dashboard), set up an Akuna connection for your project with your Clerk keys:
+
+- The **publishable key** is public and used to boot the embed.
+- The **secret key** is stored **encrypted at rest** and never returned — Sawala uses it server-side and only ever reports whether a secret is set.
+
+<Callout type="info">
+There's **one active connection per scope**. A project-scoped connection applies to that project; an organization-scoped one applies everywhere a project doesn't have its own. You can't have two active connections in the same scope.
+</Callout>
+
+## 3. Wire up the member-sync webhook
+
+To keep your member directory in sync, point a Clerk **webhook** at the URL Akuna gives you for this connection, and save the webhook's **signing secret** back into the connection.
+
+- Until the signing secret is stored, member sync stays off — the connection still boots the embed, but members won't mirror yet.
+- Every webhook is verified by its signature, so only genuine events from your Clerk app write to your directory.
+
+Once the webhook is live, registrations, profile updates, and deletions flow into your directory automatically. If your Clerk app uses **organizations** (Clerk's B2B groups), those and their memberships mirror too.
+
+## 4. Use it
+
+With the connection active, add the [embed](/en/docs/akuna/tutorial-first-membership) to your site with a publishable API key. See the [API reference](/en/docs/akuna/reference/api) for the config endpoint and the package exports.

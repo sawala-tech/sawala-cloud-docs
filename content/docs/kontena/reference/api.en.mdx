@@ -5,11 +5,7 @@ description: Kontena's public REST API — every endpoint, parameter, and header
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-> **TODO: translate** — Indonesian source at [`api.mdx`](./api.mdx). The tables and code samples below are language-neutral and don't need translation; only the prose around them does.
-
-<Callout type="info">
-An interactive OpenAPI renderer will be added here once the public spec is exposed. For now this page shows endpoints in tables.
-</Callout>
+The Kontena public API is **read-only** and returns **published content only**.
 
 ## Base URL
 
@@ -17,13 +13,20 @@ An interactive OpenAPI renderer will be added here once the public spec is expos
 https://api.sawala.cloud/public/kontena
 ```
 
-## Required header
+## Authentication
+
+Send your API key on every request:
 
 ```
 X-API-Key: pk_live_xxx
 ```
 
-A public key (`pk_live_…`) is enough for every read endpoint here. See [how to mint an API key](/en/docs/kontena/how-to-mint-api-key).
+The `Authorization: Bearer <key>` form is also accepted.
+
+- A **public key** (`pk_live_…`) is read-only and browser-safe — it's all you need for every endpoint here.
+- A **secret key** (`sk_live_…`) is read/write and server-side only. It is rejected if sent with a browser `Origin`, and it does **not** unlock drafts or preview — the public API returns published content regardless of key type.
+
+See [how to mint an API key](/en/docs/kontena/how-to-mint-api-key).
 
 ## Endpoints
 
@@ -38,57 +41,80 @@ A public key (`pk_live_…`) is enough for every read endpoint here. See [how to
 
 | Method | Path | Description |
 | --- | --- | --- |
-| `GET` | `/projects/{projId}/content/single/{schemaSlug}` | Fetch the singleton entry |
+| `GET` | `/projects/{projId}/content/single/{schemaSlug}` | Fetch the single entry |
 
 ### Schemas
 
 | Method | Path | Description |
 | --- | --- | --- |
 | `GET` | `/projects/{projId}/schemas` | List all schemas |
-| `GET` | `/projects/{projId}/schemas/{schemaId}` | Fetch a schema definition |
+| `GET` | `/projects/{projId}/schemas/{schemaId}` | Fetch one schema definition |
 
 ## Query parameters
+
+These apply to the collection list endpoint.
 
 | Param | Values | Description |
 | --- | --- | --- |
 | `locale` | `id`, `en`, … | Filter by entry locale |
-| `q` | string | Substring filter on `title` and `slug` |
-| `publicationState` | `live` (default), `preview` | `preview` requires a secret key |
-| `limit` | integer (default 20, max 100) | Entries per page |
-| `cursor` | string | Cursor for the next page |
+| `q` | string | Case-insensitive substring filter over `slug` and `data.title` |
+| `limit` | integer (default **25**, max 100) | Entries per page |
+| `cursor` | string | Cursor for the next page (from `meta.pagination.nextCursor`) |
 
 ## Response shape
 
+The list endpoint returns a top-level `data` array plus pagination under `meta`. Each entry's own fields live inside that entry's `data` object — for example a post's title is `data.title`, **not** a top-level field.
+
 ```json
 {
-  "items": [
+  "data": [
     {
-      "id":        "ent_abc",
-      "slug":      "hello-world",
-      "title":     "Hello World",
-      "locale":    "en",
-      "status":    "published",
-      "createdAt": "2026-05-01T10:00:00Z",
-      "updatedAt": "2026-05-01T10:30:00Z",
-      "data":      { "body": "<p>...</p>", "coverImage": { "url": "https://..." } }
+      "id":          "ent_abc",
+      "documentId":  "doc_abc",
+      "slug":        "hello-world",
+      "locale":      "en",
+      "status":      "published",
+      "data":        { "title": "Hello World", "body": "<p>...</p>", "coverImage": { "url": "https://..." } },
+      "publishedAt": "2026-05-01T10:00:00Z",
+      "createdAt":   "2026-05-01T10:00:00Z",
+      "updatedAt":   "2026-05-01T10:30:00Z"
     }
   ],
   "meta": {
-    "pagination": { "limit": 20, "hasMore": true, "nextCursor": "ZW50X3h5eg" }
+    "pagination": { "limit": 25, "hasMore": true, "nextCursor": "ZW50X3h5eg" }
   }
 }
 ```
 
-## Error codes
+Paginate by passing `meta.pagination.nextCursor` back as the `cursor` parameter while `hasMore` is `true`.
+
+<Callout type="info">
+The `@sawala/kontena-client` SDK unwraps the top-level `data` into `items` and returns `{ items, pagination }`, so SDK code reads `items` while raw `fetch`/`curl` must read `data`.
+</Callout>
+
+## Error responses
+
+Errors are flat `{ "error": "..." }` objects.
 
 | HTTP | Body | Cause |
 | --- | --- | --- |
-| `400` | `{ "error": "..." }` | Invalid params/body |
-| `401` | `{ "error": "unauthorized" }` | Missing/wrong API key |
-| `403` | `{ "error": "forbidden" }` | Token has no access to that project |
-| `404` | `{ "error": "not found" }` | Entry / schema / project doesn't exist |
-| `429` | `{ "error": "rate limit exceeded" }` | Too many requests |
+| `400` | `{ "error": "<validation message>" }` | Invalid parameter |
+| `401` | `{ "error": "Unauthorized" }` | Missing or invalid API key |
+| `403` | `{ "error": "Forbidden" }` / `{ "error": "Forbidden: ..." }` | No access to the project, or a secret key sent with a browser `Origin` |
+| `404` | `{ "error": "NOT_FOUND" }` / `{ "error": "SCHEMA_NOT_FOUND" }` | Entry, project, or schema doesn't exist |
 
-## Rate limit
+## SDK
 
-Default: 100 requests per minute per API key. Contact Sawala to raise this.
+```ts
+import { createKontenaClient } from '@sawala/kontena-client';
+
+const kontena = createKontenaClient({
+  baseUrl:      'https://api.sawala.cloud/public/kontena',
+  projectId:    'proj_xxx',
+  publicApiKey: 'pk_live_xxx',
+});
+
+const { items, pagination } = await kontena.listCollection('post', { locale: 'en', limit: 25 });
+```
+
+See [CLI and SDK](/en/docs/general-concepts/cli-and-sdk) for installation and the wider SDK surface.

@@ -1,0 +1,66 @@
+---
+title: Sebar API Reference
+description: Sebar's public send endpoint — base URL, the full request body, and the delivery states a message moves through.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+The public API exposes a single operation: sending a message. Authoring templates and browsing sent messages happen in the dashboard.
+
+## Base URL
+
+```
+https://api.sawala.cloud/public/sebar
+```
+
+## Authentication
+
+Send an [API key](/id/docs/general-concepts/api-keys-and-access) scoped for Sebar in the `X-API-Key` header. Sends are a server-side operation — use a secret key and keep it off the browser.
+
+## Send a message
+
+```
+POST /notifications/send
+```
+
+### Request body
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `to` | `{ email, name? }` | **Required.** The recipient. |
+| `templateId` | string | Template slug to render. Required **unless** you supply an inline `subject` + body. |
+| `subject` | string | Inline subject (template-free sends). |
+| `bodyHtml` | string | Inline HTML body. |
+| `bodyText` | string | Inline plain-text body. |
+| `from` | `{ email, name? }` | Optional sender override. |
+| `replyTo` | `{ email, name? }` | Optional reply-to. |
+| `variables` | object | Values for `{{placeholders}}` — string, number, or boolean. |
+| `tags` | string[] | Labels for filtering your activity. |
+| `metadata` | object | String key/values attached to the message. |
+| `projectId` | string | Optional explicit project (otherwise inferred from the key). |
+
+Each request must carry **either** a `templateId` **or** an inline `subject` with `bodyHtml` and/or `bodyText`.
+
+A successful send returns the created message's id.
+
+## Delivery states
+
+A message's status is advanced by the provider, never by the caller, and never moves backward once terminal:
+
+| Status | Meaning |
+| --- | --- |
+| `queued` | Accepted and waiting to send |
+| `sent` | Handed to the email provider |
+| `delivered` | Accepted by the recipient's server |
+| `bounced` | Hard bounce — undeliverable |
+| `spam` | Marked as a spam complaint |
+| `suppressed` | Blocked by the organization's suppression list |
+| `failed` | Non-retryable error |
+
+<Callout type="info">
+Hard bounces and spam complaints add the address to your organization's **suppression list** automatically, so later sends to it are `suppressed` rather than re-attempted. Suppressions are managed in the dashboard.
+</Callout>
+
+For task-oriented examples, see [How to send email](/id/docs/sebar/how-to-send-email).

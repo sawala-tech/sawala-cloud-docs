@@ -1,6 +1,9 @@
 {
   "title": "Akuna",
   "pages": [
-    "what-is-akuna"
+    "what-is-akuna",
+    "tutorial-first-membership",
+    "how-to-connect-clerk",
+    "reference"
   ]
 }

@@ -7,9 +7,7 @@ import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-> **TODO: translate** — Indonesian source at [`tutorial-first-blog.mdx`](./tutorial-first-blog.mdx). Translators: render the steps below into English.
-
-This tutorial takes you from zero to a blog reading from Kontena in **15 minutes**.
+This tutorial takes you from zero to a blog reading from Kontena in **15 minutes**. You'll define a `post` schema in the dashboard, add and publish an entry, mint a public API key, and read the content back from code.
 
 <Callout type="info">
 **Prerequisite.** An active Sawala Cloud account and one project. Sign up free at [sawala.cloud](https://sawala.cloud).
@@ -21,15 +19,26 @@ This tutorial takes you from zero to a blog reading from Kontena in **15 minutes
 
 ### Create a `post` schema
 
-(Translate the Indonesian source steps.)
+1. Open your project in the dashboard and go to **Kontena → Schemas**.
+2. Click **Create Schema**. Name it `Post`, set the slug to `post`, and choose type **Collection** (a blog has many posts).
+3. Add fields:
+   - `title` — **text**
+   - `slug` — **text**
+   - `body` — **richtext** (or **markdown** if you prefer)
+   - `coverImage` — **media** (managed by [Berkasna](/en/docs/berkasna/what-is-berkasna))
+   - `publishedDate` — **date**
+4. Save the schema.
 
 </Step>
 
 <Step>
 
-### Add one entry
+### Add and publish one entry
 
-(Translate.)
+1. Go to **Kontena → Content** and pick the `Post` collection.
+2. Click **Create Entry**, fill in `title`, `slug`, `body`, choose a cover image, and set the date.
+3. Pick the locale (e.g. `en`).
+4. Click **Publish**. Only published entries are returned by the public API — a draft stays invisible to your app.
 
 </Step>
 
@@ -37,7 +46,11 @@ This tutorial takes you from zero to a blog reading from Kontena in **15 minutes
 
 ### Mint a public API key
 
-(Translate.)
+1. Open **Organization Settings → API Keys**.
+2. Click **Create Key**, choose **Public** type, scope it to this project, and product **Kontena**.
+3. Copy the `pk_live_…` token — it appears only once.
+
+A public key is read-only and safe to ship to a browser. For the full model, see [how to mint an API key](/en/docs/kontena/how-to-mint-api-key).
 
 </Step>
 
@@ -45,7 +58,11 @@ This tutorial takes you from zero to a blog reading from Kontena in **15 minutes
 
 ### Fetch from code
 
-Code samples are language-neutral:
+Send the key in the `X-API-Key` header and read the response.
+
+<Callout type="info">
+**Reading the response.** The raw API returns your entries under a top-level `data` array, and each entry's own fields live inside that entry's `data` object — so a post's title is `entry.data.title`. The `@sawala/kontena-client` SDK unwraps this for you and exposes `items`, so SDK code can read fields more directly.
+</Callout>
 
 <Tabs items={['curl', 'fetch (vanilla)', '@sawala/kontena-client']}>
 <Tab value="curl">
@@ -60,7 +77,15 @@ const res = await fetch(
   'https://api.sawala.cloud/public/kontena/projects/proj_xxx/content/collection/post?locale=en',
   { headers: { 'X-API-Key': 'pk_live_xxx' } }
 );
-const { items } = await res.json();
+
+const { data, meta } = await res.json();
+
+// Each entry's fields live inside `entry.data`.
+for (const entry of data) {
+  console.log(entry.slug, entry.data.title);
+}
+
+// meta.pagination.nextCursor → pass back as ?cursor=… for the next page.
 ```
 </Tab>
 <Tab value="@sawala/kontena-client">
@@ -68,13 +93,19 @@ const { items } = await res.json();
 import { createKontenaClient } from '@sawala/kontena-client';
 
 const kontena = createKontenaClient({
-  baseUrl:     'https://api.sawala.cloud/public/kontena',
-  projectId:   'proj_xxx',
-  publicToken: 'pk_live_xxx',
+  baseUrl:      'https://api.sawala.cloud/public/kontena',
+  projectId:    'proj_xxx',
+  publicApiKey: 'pk_live_xxx',
 });
 
 interface Post { title: string; body: string }
-const { items } = await kontena.listCollection<Post>('post', { locale: 'en' });
+
+// The SDK unwraps `data` into `items` for you.
+const { items, pagination } = await kontena.listCollection<Post>('post', { locale: 'en' });
+
+for (const post of items) {
+  console.log(post.slug, post.data.title);
+}
 ```
 </Tab>
 </Tabs>
@@ -85,6 +116,7 @@ const { items } = await kontena.listCollection<Post>('post', { locale: 'en' });
 
 ## Next steps
 
-- Add an `id` locale to the same schema and publish the Indonesian variant.
+- Add an `id` locale to the same schema and publish the Indonesian variant — then read it with `?locale=id`.
 - Read [how to mint an API key](/en/docs/kontena/how-to-mint-api-key) for the full public-vs-secret model.
-- See the [API reference](/en/docs/kontena/reference/api) for every endpoint and parameter.
+- Browse all endpoints and parameters in the [API reference](/en/docs/kontena/reference/api).
+- Learn the SDK across products in [CLI and SDK](/en/docs/general-concepts/cli-and-sdk).

@@ -1,40 +1,49 @@
 ---
-title: Apa itu Berkasna
-description: Berkasna adalah produk pengelolaan berkas dan media Sawala Cloud — gambar, video, dokumen — yang siap dipakai dari aplikasi Anda.
+title: What is Berkasna
+description: Berkasna is Sawala Cloud's file and asset storage product — upload images, get a public URL, and serve them from your app.
 ---
 
-**Berkasna** adalah produk pengelolaan **berkas dan media** Sawala Cloud. Operator mengunggah aset (gambar, video, PDF, dokumen Office) lewat dashboard, lalu aplikasi Anda mengaksesnya via URL publik atau API.
+import { Callout } from 'fumadocs-ui/components/callout';
 
-## Kapan memilih Berkasna
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
 
-- Aplikasi Anda butuh menyimpan file yang diunggah pengguna (avatar, attachment, gambar postingan).
-- Tim editorial perlu mengelola library aset yang dipakai di banyak halaman — gambar hero, dokumen unduhan, video latar.
-- Anda butuh upload dari browser **langsung ke storage** tanpa membebani server aplikasi Anda.
+**Berkasna** is Sawala Cloud's **file and asset storage** product. You upload a file, Berkasna stores it as an **asset**, and your app reads it back by URL or through the API.
 
-## Konsep inti
+Each asset can be **public** — served from a stable URL anyone can fetch — or **private** — kept behind access controls. Public images are delivered from the `berkasna.sawala.cloud` host.
 
-- **Asset** — satu file beserta metadata-nya: nama, MIME type, ukuran, URL publik, plus field opsional `title`, `description`, `alt`, dan `tags`.
-- **Presigned upload** — alur upload dua langkah di mana browser meng-upload langsung ke storage. Server aplikasi Anda tidak pernah memegang isi file, hanya mintainstruksi upload.
-- **MIME categories** — Berkasna mengkategorikan aset jadi `image`, `video`, `pdf`, dan `document` untuk filtering di dashboard.
+## When to choose Berkasna
 
-## Integrasi dengan Kontena
+- You need to store images that your website, app, or another service can fetch by URL.
+- You want a server-side upload flow where your app never has to proxy the raw file bytes itself.
+- You manage media alongside structured content in [Kontena](/id/docs/kontena/what-is-kontena) and want both backed by the same platform.
 
-Field bertipe `media` di skema [Kontena](/id/docs/kontena/what-is-kontena) terhubung langsung ke Berkasna. Editor yang sedang mengisi entri konten bisa memilih aset yang sudah ada atau mengunggah yang baru tanpa keluar dari form.
+## Core concepts
 
-## Batasan
+- **Asset** — one file plus its metadata: `id`, `filename`, `mimeType`, `size`, `status`, and (for public files) a computed `url`. Optional metadata such as `title`, `alt`, and `tags` can be attached.
+- **Presigned upload** — a three-step flow: your server requests an upload slot, the file bytes are sent directly to a temporary upload URL, then your server marks the upload complete. Your app server never holds the file bytes.
+- **Visibility** — an asset is either public (gets a `berkasna.sawala.cloud` URL) or private (access-controlled). You choose this when requesting the upload slot.
+- **Asset status** — a new asset is `pending` while bytes are in flight, then becomes `completed` once you mark the upload complete.
 
-- **Ukuran maksimum:** 200 MB per file.
-- **MIME types diterima:** semua `image/*`, video (`mp4`, `webm`, `quicktime`), PDF, dokumen Office (Word, Excel, PowerPoint).
-- **Listing pagination:** cursor-based, default 20 per halaman, max 100.
+## Integration with Kontena
 
-## Alur upload
+Schema fields of type `media` in [Kontena](/id/docs/kontena/what-is-kontena) are wired directly to Berkasna, so images and documents you reference in an entry are stored and served by the same platform.
 
-Berkasna menggunakan **presigned URL** untuk menghindari routing file besar lewat server aplikasi Anda:
+<Callout type="info">
+**The public API key surface accepts images only.** Uploads through the public API are limited to image files (`image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`) and a maximum of **5 MB** per file. Larger files and other formats are handled through the dashboard, not the public API.
+</Callout>
 
-1. Aplikasi minta upload slot ke Berkasna → dapat `assetId` + `uploadUrl`.
-2. Browser meng-upload file via HTTP PUT langsung ke `uploadUrl`.
-3. Aplikasi memberitahu Berkasna bahwa upload selesai → asset berstatus `completed` dan punya URL publik.
+## Limits (public API)
 
-Optional: cek dulu apakah file dengan hash yang sama sudah ada (deduplikasi) sebelum minta slot baru.
+- **Accepted types:** `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`.
+- **Max file size:** 5 MB.
+- **Listing pagination:** cursor-based; default 25 per page, max 100.
 
-Lanjut ke [tutorial upload pertama](/id/docs/berkasna/tutorial-first-upload) untuk implementasi alur ini.
+## Upload flow
+
+1. `POST /upload/presigned` (secret key) — request an upload slot. You get back an `assetId`, an `r2Key`, and a temporary `uploadUrl` (valid about 15 minutes).
+2. `PUT` the raw file bytes to that `uploadUrl` — no API key on this request.
+3. `POST /upload/complete` (secret key) with the `assetId` — mark the upload complete.
+
+To read the public URL afterward, call `GET /assets/{id}`, which returns the asset including its computed `url`.
+
+Continue to the [first upload tutorial](/id/docs/berkasna/tutorial-first-upload).

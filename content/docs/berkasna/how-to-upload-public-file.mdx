@@ -1,90 +1,80 @@
 ---
-title: Cara upload file publik
-description: Pola minimal upload-and-share — tiga panggilan API, satu URL publik yang bisa langsung dipakai.
+title: How to upload a public file
+description: The minimal upload-and-share pattern — three calls to store an image, then one call to read its public URL.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Untuk kasus di mana Anda butuh menerima upload file dari pengguna, menyimpannya di Berkasna, dan langsung mendapatkan URL publik — gunakan pola tiga-panggilan berikut.
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
 
-## Langkah-langkah
-
-1. **Minta slot upload** dari aplikasi Anda (server-side, dengan secret key):
-
-   ```bash
-   POST https://api.sawala.cloud/public/berkasna/upload/presigned
-   X-API-Key: sk_live_xxx
-   Content-Type: application/json
-
-   { "filename": "avatar.png", "mimeType": "image/png", "size": 102400 }
-   ```
-
-   Response mengembalikan `{ assetId, uploadUrl, expiresAt }`.
-
-2. **PUT file ke `uploadUrl`** dari browser pengguna:
-
-   ```js
-   await fetch(uploadUrl, {
-     method:  'PUT',
-     headers: { 'Content-Type': file.type },
-     body:    file,
-   });
-   ```
-
-3. **Tandai selesai** dari aplikasi Anda:
-
-   ```bash
-   POST https://api.sawala.cloud/public/berkasna/upload/complete
-   X-API-Key: sk_live_xxx
-   Content-Type: application/json
-
-   { "assetId": "ast_abc123" }
-   ```
-
-   Response: `{ id, status: "completed", url: "https://files.sawala.cloud/..." }`.
-
-URL di `url` siap dipakai langsung — pasang di `<img src>`, kirim ke pengguna lewat email, atau simpan di database aplikasi Anda.
+When you need to accept an image, store it as a public asset in Berkasna, and serve it by URL — use the pattern below. The upload itself is three calls; reading the public URL is one more.
 
 <Callout type="warn">
-**`uploadUrl` punya masa berlaku ~15 menit.** Jika pengguna lambat menyelesaikan upload, request slot baru. Slot lama tidak otomatis dihapus tapi tidak bisa dipakai lagi.
+**Public API uploads are images only, up to 5 MB.** Allowed types: `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`. A bad type returns `400 UNSUPPORTED_MEDIA_TYPE`; an oversized file returns `400 FILE_TOO_LARGE`.
 </Callout>
 
-## Validasi sebelum upload
+## Steps
 
-Untuk mencegah upload file yang tidak diinginkan, validasi di sisi klien sebelum langkah 1:
+1. **Request an upload slot** from your server, using a **secret** key. Mark it public so it gets a `berkasna.sawala.cloud` URL.
 
-```js
-const MAX_SIZE_MB = 5;
-const ALLOWED     = ['image/jpeg', 'image/png', 'image/webp'];
+   ```bash
+   curl -X POST \
+     -H "X-API-Key: sk_live_xxx" \
+     -H "Content-Type: application/json" \
+     -d '{"filename":"logo.png","mimeType":"image/png","size":12345}' \
+     "https://api.sawala.cloud/public/berkasna/upload/presigned"
+   ```
 
-if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-  alert(`Ukuran maksimal ${MAX_SIZE_MB} MB`);
-  return;
-}
-if (!ALLOWED.includes(file.type)) {
-  alert('Format file tidak didukung');
-  return;
+   The response includes `assetId`, `r2Key`, and a temporary `uploadUrl`. A publishable key here is rejected with `403 SECRET_KEY_REQUIRED`.
+
+2. **PUT the file bytes** to the returned `uploadUrl`. Send **no** API key on this request.
+
+   ```js
+   await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+   ```
+
+3. **Mark complete** from your server, with the secret key:
+
+   ```bash
+   curl -X POST \
+     -H "X-API-Key: sk_live_xxx" \
+     -H "Content-Type: application/json" \
+     -d '{"assetId":"ast_abc123"}' \
+     "https://api.sawala.cloud/public/berkasna/upload/complete"
+   ```
+
+   The response is `{ "id": "ast_abc123", "status": "completed" }` — note there is **no** URL in it.
+
+## Get the public URL
+
+The complete response does not return a URL. Fetch the asset to read its computed `url` (a public key works here):
+
+```bash
+curl -H "X-API-Key: pk_live_xxx" \
+  "https://api.sawala.cloud/public/berkasna/assets/ast_abc123"
+```
+
+```json
+{
+  "id":     "ast_abc123",
+  "status": "completed",
+  "url":    "https://berkasna.sawala.cloud/acme/originals/ast_abc123/logo.png"
 }
 ```
 
-Berkasna sendiri menerima file hingga 200 MB; batasi lebih ketat di aplikasi Anda jika perlu.
+The public URL pattern is `https://berkasna.sawala.cloud/<org-slug>/originals/<assetId>/<filename>`. You can also build it directly from the `r2Key` returned in step 1.
 
-## Deduplikasi
+<Callout type="info">
+**`uploadUrl` expires in about 15 minutes.** If the user is slow, request a fresh slot rather than reusing an expired URL.
+</Callout>
 
-Untuk menghindari menyimpan file yang sama dua kali, hitung hash SHA-256 file di browser dan tanyakan ke Berkasna sebelum minta slot:
+## Deduplication
 
-```js
-const hash = await sha256(file);
+Compute a SHA-256 of the file and check `/check-duplicate?hash=...` before requesting a slot.
 
-const res = await fetch(
-  `https://api.sawala.cloud/public/berkasna/upload/check-duplicate?hash=${hash}`,
-  { headers: { 'X-API-Key': 'pk_live_xxx' } }
-);
-
-const { exists, asset } = await res.json();
-if (exists) {
-  // Pakai langsung; tidak perlu upload lagi.
-  return asset.url;
-}
-// Lanjut ke langkah 1.
+```bash
+curl -H "X-API-Key: pk_live_xxx" \
+  "https://api.sawala.cloud/public/berkasna/check-duplicate?hash=<sha256>"
 ```
+
+The response is `{ "isDuplicate": true, "assetId": "ast_abc123" }`. It does not include a URL — if you need one for the existing asset, call `GET /assets/{assetId}`.

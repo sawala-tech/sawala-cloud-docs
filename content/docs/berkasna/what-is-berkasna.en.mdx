@@ -1,34 +1,47 @@
 ---
 title: What is Berkasna
-description: Berkasna is Sawala Cloud's file and media management product — images, video, documents — ready to use from your app.
+description: Berkasna is Sawala Cloud's file and asset storage product — upload images, get a public URL, and serve them from your app.
 ---
 
-> **TODO: translate** — Indonesian source at [`what-is-berkasna.mdx`](./what-is-berkasna.mdx).
+import { Callout } from 'fumadocs-ui/components/callout';
 
-**Berkasna** is Sawala Cloud's **file and media management** product. Operators upload assets (images, video, PDFs, Office documents) through the dashboard; your app accesses them by public URL or API.
+**Berkasna** is Sawala Cloud's **file and asset storage** product. You upload a file, Berkasna stores it as an **asset**, and your app reads it back by URL or through the API.
+
+Each asset can be **public** — served from a stable URL anyone can fetch — or **private** — kept behind access controls. Public images are delivered from the `berkasna.sawala.cloud` host.
 
 ## When to choose Berkasna
 
-(Translate.)
+- You need to store images that your website, app, or another service can fetch by URL.
+- You want a server-side upload flow where your app never has to proxy the raw file bytes itself.
+- You manage media alongside structured content in [Kontena](/en/docs/kontena/what-is-kontena) and want both backed by the same platform.
 
 ## Core concepts
 
-- **Asset** — one file plus metadata: name, MIME type, size, public URL, optional `title` / `description` / `alt` / `tags`.
-- **Presigned upload** — two-step flow: browser uploads directly to storage; your app server never holds the file bytes.
-- **MIME categories** — `image`, `video`, `pdf`, `document` for dashboard filtering.
+- **Asset** — one file plus its metadata: `id`, `filename`, `mimeType`, `size`, `status`, and (for public files) a computed `url`. Optional metadata such as `title`, `alt`, and `tags` can be attached.
+- **Presigned upload** — a three-step flow: your server requests an upload slot, the file bytes are sent directly to a temporary upload URL, then your server marks the upload complete. Your app server never holds the file bytes.
+- **Visibility** — an asset is either public (gets a `berkasna.sawala.cloud` URL) or private (access-controlled). You choose this when requesting the upload slot.
+- **Asset status** — a new asset is `pending` while bytes are in flight, then becomes `completed` once you mark the upload complete.
 
 ## Integration with Kontena
 
-Schema fields of type `media` in [Kontena](/en/docs/kontena/what-is-kontena) are wired directly to Berkasna.
+Schema fields of type `media` in [Kontena](/en/docs/kontena/what-is-kontena) are wired directly to Berkasna, so images and documents you reference in an entry are stored and served by the same platform.
 
-## Limits
+<Callout type="info">
+**The public API key surface accepts images only.** Uploads through the public API are limited to image files (`image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`) and a maximum of **5 MB** per file. Larger files and other formats are handled through the dashboard, not the public API.
+</Callout>
 
-- **Max file size:** 200 MB.
-- **Accepted MIME types:** all `image/*`, video (`mp4`, `webm`, `quicktime`), PDF, Office documents (Word, Excel, PowerPoint).
-- **Listing pagination:** cursor-based; default 20/page, max 100.
+## Limits (public API)
+
+- **Accepted types:** `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`.
+- **Max file size:** 5 MB.
+- **Listing pagination:** cursor-based; default 25 per page, max 100.
 
 ## Upload flow
 
-(Translate the 3-step presigned URL flow.)
+1. `POST /upload/presigned` (secret key) — request an upload slot. You get back an `assetId`, an `r2Key`, and a temporary `uploadUrl` (valid about 15 minutes).
+2. `PUT` the raw file bytes to that `uploadUrl` — no API key on this request.
+3. `POST /upload/complete` (secret key) with the `assetId` — mark the upload complete.
+
+To read the public URL afterward, call `GET /assets/{id}`, which returns the asset including its computed `url`.
 
 Continue to the [first upload tutorial](/en/docs/berkasna/tutorial-first-upload).

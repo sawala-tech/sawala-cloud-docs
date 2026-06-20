@@ -1,0 +1,60 @@
+---
+title: Send your first email
+description: Author a template in the dashboard, then send a personalized transactional email through the Sebar API — in about ten minutes.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+In this tutorial you'll send your first transactional email: author a **template**, then trigger a personalized send from your server. Budget about ten minutes. You'll need a Sawala Cloud account and a [project](/id/docs/general-concepts/organizations-and-projects).
+
+## 1. Author a template
+
+In the [dashboard](https://sawala.cloud/dashboard), open **Sebar** in your project and create a template:
+
+- **Slug:** `welcome`
+- **Subject:** `Welcome, {{name}}!`
+- **Body:** an HTML (or plain-text) body that greets `{{name}}`
+
+The `{{name}}` placeholders are filled in at send time from the variables you pass.
+
+## 2. Mint an API key
+
+Open **Organization Settings → API Keys** and create a key scoped to this project and the Sebar product. Copy it — it's shown once. (More in [API keys & access](/id/docs/general-concepts/api-keys-and-access).)
+
+<Callout type="warn">
+Send email from your **server**, never the browser — anyone who sees the key could send mail as you. Use a server-side (secret) key and keep it on the server.
+</Callout>
+
+## 3. Send the email
+
+Call the send endpoint with your template slug, a recipient, and the variables:
+
+```bash
+curl -X POST https://api.sawala.cloud/public/sebar/notifications/send \
+  -H "X-API-Key: sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "templateId": "welcome",
+    "to": { "email": "ada@example.com", "name": "Ada" },
+    "variables": { "name": "Ada" }
+  }'
+```
+
+Sebar renders the template, queues the message, and delivers it. The response includes the new message's id so you can look it up later.
+
+## 4. Watch delivery
+
+Open the message in the **Sebar** dashboard. Its status advances as the email is processed:
+
+```
+queued → sent → delivered
+```
+
+If something goes wrong it lands in a terminal state instead — `bounced`, `spam`, `suppressed`, or `failed` — and every step is recorded in the message's delivery log.
+
+## What's next
+
+- [Send email](/id/docs/sebar/how-to-send-email) — personalization, inline (template-free) sends, reply-to, and tagging.
+- [API reference](/id/docs/sebar/reference/api) — the send endpoint, the full body, and delivery states.

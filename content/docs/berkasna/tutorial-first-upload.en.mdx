@@ -1,18 +1,20 @@
 ---
 title: Tutorial — Your first upload with Berkasna
-description: Implement the presigned-upload flow — request slot, PUT from the browser, complete — in 10 minutes.
+description: Walk the real three-step presigned-upload flow — request a slot, PUT the bytes, complete — then read back the public URL.
 ---
 
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 
-> **TODO: translate** — Indonesian source at [`tutorial-first-upload.mdx`](./tutorial-first-upload.mdx).
-
-This tutorial shows how to accept a file upload from your app's user and store it in Berkasna.
+This tutorial walks the complete upload flow: store an image in Berkasna and read back its public URL.
 
 <Callout type="info">
-**Prerequisite.** A Berkasna API key. See [how to mint an API key](/en/docs/kontena/how-to-mint-api-key) — the flow is the same.
+**Prerequisites.** A Berkasna **secret** API key (`sk_live_…`), used from a server. The upload-slot and complete steps reject publishable keys with `403 SECRET_KEY_REQUIRED`. See [API keys and access](/en/docs/general-concepts/api-keys-and-access).
+</Callout>
+
+<Callout type="warn">
+**The public API accepts images only, up to 5 MB.** Allowed types are `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, and `image/gif`. Anything else returns `400 UNSUPPORTED_MEDIA_TYPE`; anything larger than 5 MB returns `400 FILE_TOO_LARGE`.
 </Callout>
 
 <Steps>
@@ -21,23 +23,36 @@ This tutorial shows how to accept a file upload from your app's user and store i
 
 ### Request an upload slot
 
-(Translate.)
+From your server, with a secret key, ask Berkasna for an upload slot.
 
 ```bash
 curl -X POST \
   -H "X-API-Key: sk_live_xxx" \
   -H "Content-Type: application/json" \
-  -d '{"filename":"hero.jpg","mimeType":"image/jpeg","size":523456}' \
+  -d '{"filename":"hero.png","mimeType":"image/png","size":523456}' \
   "https://api.sawala.cloud/public/berkasna/upload/presigned"
 ```
+
+The response gives you the `assetId`, the storage `r2Key`, and a temporary `uploadUrl`:
+
+```json
+{
+  "assetId":   "ast_abc123",
+  "r2Key":     "acme/originals/ast_abc123/hero.png",
+  "uploadUrl": "https://...",
+  "expiresAt": "2026-06-20T10:30:00Z"
+}
+```
+
+The `uploadUrl` is valid for about 15 minutes. You can optionally pass `folderId` in the request body.
 
 </Step>
 
 <Step>
 
-### PUT the file from the browser
+### PUT the file bytes
 
-(Translate.)
+Send the raw file bytes to the `uploadUrl`. **Do not** include an API key on this request — the URL is already pre-authorized.
 
 ```js
 async function uploadToBerkasna(file, uploadUrl) {
@@ -54,9 +69,9 @@ async function uploadToBerkasna(file, uploadUrl) {
 
 <Step>
 
-### Tell Berkasna the upload completed
+### Mark the upload complete
 
-(Translate.)
+Back on your server, with the secret key, tell Berkasna the bytes have landed.
 
 ```bash
 curl -X POST \
@@ -66,12 +81,47 @@ curl -X POST \
   "https://api.sawala.cloud/public/berkasna/upload/complete"
 ```
 
+The response confirms the new status only — it does **not** include a URL:
+
+```json
+{ "id": "ast_abc123", "status": "completed" }
+```
+
+You can optionally pass `fileHash`, `width`, and `height` in this request.
+
+</Step>
+
+<Step>
+
+### Read the public URL
+
+To get the public URL, fetch the asset. This endpoint accepts a public key.
+
+```bash
+curl -H "X-API-Key: pk_live_xxx" \
+  "https://api.sawala.cloud/public/berkasna/assets/ast_abc123"
+```
+
+The asset includes a computed `url` on the `berkasna.sawala.cloud` host:
+
+```json
+{
+  "id":       "ast_abc123",
+  "filename": "hero.png",
+  "mimeType": "image/png",
+  "status":   "completed",
+  "url":      "https://berkasna.sawala.cloud/acme/originals/ast_abc123/hero.png"
+}
+```
+
+You can also construct the same URL yourself from the `r2Key` you received in step 1.
+
 </Step>
 
 </Steps>
 
 ## Next steps
 
-- Add deduplication: check `/upload/check-duplicate?hash=...` before requesting a slot.
+- Avoid re-uploading: check `/check-duplicate?hash=...` before requesting a slot.
 - See [how to upload a public file](/en/docs/berkasna/how-to-upload-public-file).
 - Read the [API reference](/en/docs/berkasna/reference/api).

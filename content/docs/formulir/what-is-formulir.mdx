@@ -1,37 +1,45 @@
 ---
-title: Apa itu Formulir
-description: Formulir adalah pembangun form Sawala Cloud — buat, tempel di situs Anda, dan kumpulkan submission, semua tanpa kode.
+title: What is Formulir
+description: Formulir is Sawala Cloud's form builder and submission inbox — create forms, embed them anywhere, and collect responses without writing a backend.
 ---
 
-**Formulir** adalah pembangun form Sawala Cloud. Anda mendefinisikan field-field (text, email, dropdown, file upload, dan lainnya) di dashboard, lalu menyematkan form tersebut di situs atau aplikasi Anda — baik via iframe satu baris maupun via komponen React. Submission yang masuk tersimpan di Sawala dan bisa Anda akses lewat dashboard atau API.
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
 
-## Kapan memilih Formulir
+**Formulir** is Sawala Cloud's form builder and submission inbox. You define a form's fields and settings in the dashboard, embed the form on your site or app, and every response lands in your dashboard inbox. There is no server to run — Formulir stores submissions, handles file uploads, and protects against spam for you.
 
-- Anda butuh form kontak, pendaftaran event, survei, atau lead capture **tanpa membangun backend submission sendiri**.
-- Tim non-teknis perlu memodifikasi form (menambah field, mengubah teks tombol) tanpa deploy ulang situs.
-- Anda butuh form yang bisa **menerima file upload** dan menyimpannya otomatis ke [Berkasna](/id/docs/berkasna/what-is-berkasna).
-- Anda ingin satu form bisa ditempel di banyak situs sekaligus.
+## When to choose Formulir
 
-## Konsep inti
+- You need a contact, signup, or lead-capture form on a static site, a CMS (WordPress, Squarespace), or a React app — without standing up your own backend.
+- You want submissions collected in one inbox, with file uploads and spam protection handled for you.
+- You want to embed the same form in more than one place and manage it from a single dashboard.
 
-- **Form** — definisi struktur: nama, slug, daftar field, dan settings (misalnya redirect URL setelah submit).
-- **Field** — satu input dalam form. Mendukung tipe: text, email, textarea, number, checkbox, radio, select, dan file upload.
-- **Submission** — satu hasil pengisian form. Tersimpan dengan timestamp dan metadata (IP, user agent).
-- **Embed** — cara form muncul di situs Anda. Dua opsi: iframe (untuk situs vanilla) atau komponen React (untuk integrasi yang lebih dalam).
+## Core concepts
 
-## Dua mode embed
+- **Form** — a name, a unique slug, an ordered list of fields, and settings (visibility, success message or redirect, spam protection).
+- **Field** — one input, identified by its `name`. Formulir uses the shared Sawala field-type set: `text`, `url`, `richtext`, `markdown`, `number`, `boolean`, `date`, `relation`, `media`, `blocks`, `component`, `json`, `select`, `multiselect`, and `repeater`. Long text uses `richtext` or `markdown` (rendered as a textarea); file upload uses `media`.
+- **Submission** — one completed response. Stored with a timestamp, the submitter's IP address, and user agent.
+- **Embed** — how the form renders on your site: a hosted iframe, the `@sawala/formulir-react` component, or a script tag.
 
-Formulir mendukung dua pola embed yang sengaja berbeda agar cocok dengan berbagai kasus pakai:
+## Three ways to embed
 
-- **iframe embed** — satu tag HTML, langsung bisa dipakai di situs apa pun (WordPress, Webflow, static HTML, blog platform mana pun yang membolehkan iframe). Form muncul di iframe yang isolated dari situs Anda. Cocok untuk integrasi cepat.
-- **React component** — install `@sawala/formulir-react`, pakai komponen `<FormulirForm slug="..." />`. Form di-render langsung di DOM situs Anda, jadi style situs Anda mempengaruhi tampilan form. Cocok untuk integrasi yang mempertahankan look-and-feel situs.
+| Mode | Best for | What you ship |
+| --- | --- | --- |
+| **Iframe** | Static sites, WordPress, any HTML host | One `<iframe>` tag |
+| **React component** | React 18+ apps that want the form in their own DOM | `@sawala/formulir-react` |
+| **Script tag** | Non-React hosts that want native DOM rendering | `formulir.js` + a mount `<div>` |
 
-## File upload
+See [how to embed a form](/id/docs/formulir/how-to-embed-form) for each option.
 
-Field bertipe `file` di Formulir terintegrasi otomatis dengan [Berkasna](/id/docs/berkasna/what-is-berkasna). Saat pengguna submit form dengan file, file langsung tersimpan sebagai aset Berkasna; submission menyimpan referensi ke aset tersebut.
+## File uploads
 
-## Anti-spam
+`media` fields accept file uploads. From your side it is a single step — you submit the file with the rest of the form and Formulir stores it for you. Uploaded files are managed by [Berkasna](/id/docs/berkasna/what-is-berkasna) under the hood.
 
-Setiap form dapat mengaktifkan **proteksi bot** untuk memblokir submission otomatis dari skrip. Konfigurasinya cukup centang satu opsi di settings form — Formulir mengurus sisa integrasinya.
+## Spam protection
 
-Lanjut ke [tutorial form pertama](/id/docs/formulir/tutorial-first-form) untuk membuat form Anda.
+Formulir uses Cloudflare **Turnstile**. On the Sawala-hosted iframe it is zero-config (Sawala-managed). On the API and React paths it is bring-your-own: paste your own Turnstile sitekey and secret in project settings, then toggle protection per form. See [how to embed a form](/id/docs/formulir/how-to-embed-form#spam-protection-turnstile).
+
+## API access
+
+Formulir's public API needs a project-scoped publishable key (`pk_live_…`). See [API keys and access](/id/docs/general-concepts/api-keys-and-access) and the [API reference](/id/docs/formulir/reference/api).
+
+Continue to the [first form tutorial](/id/docs/formulir/tutorial-first-form).

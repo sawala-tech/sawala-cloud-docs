@@ -5,39 +5,58 @@ description: Five steps to create a public or secret Kontena key from the dashbo
 
 import { Callout } from 'fumadocs-ui/components/callout';
 
-> **TODO: translate** — Indonesian source at [`how-to-mint-api-key.mdx`](./how-to-mint-api-key.mdx). Translators: render the steps below into English.
+A Kontena API key is the long-lived token your app uses to read content through the public API.
 
-A Kontena API key is the long-lived token your app uses to access the API.
+- **Public key (`pk_live_…`)** — read-only and browser-safe. Use it in front-end code.
+- **Secret key (`sk_live_…`)** — read/write, **server-side only**. It is rejected if it arrives with a browser `Origin` header, so never ship it to a client.
 
-- **Public key (`pk_live_…`)** — read-only, safe for browser/client use.
-- **Secret key (`sk_live_…`)** — read/write, server-side only.
+<Callout type="info">
+For reading published content — the only thing the public API ever returns — a **public key is enough**. A secret key does not unlock drafts or any preview mode here.
+</Callout>
 
 ## Steps
 
 1. Open **Organization Settings → API Keys** in the dashboard.
 2. Click **Create Key**.
-3. Choose Type (Public/Secret), Scope (which projects), Product (Kontena).
+3. Choose **Type** (Public / Secret), **Scope** (which projects), and **Product** (Kontena).
 4. Click **Create**. Copy the token — it only appears once.
 5. Save it to a password manager or your team's secret store.
+
+## Using the key
+
+Send the token in the `X-API-Key` header on every request:
 
 ```
 X-API-Key: pk_live_xxx
 ```
 
+The API also accepts the `Authorization: Bearer <key>` form if that fits your HTTP client better:
+
+```
+Authorization: Bearer pk_live_xxx
+```
+
+See the [API reference](/en/docs/kontena/reference/api) for the base URL and endpoints, and [API keys and access](/en/docs/general-concepts/api-keys-and-access) for the cross-product key model.
+
 <Callout type="warn">
-**Token leaked?** Open API Keys, find the row, click **Revoke**. Revoked tokens are rejected from the next second. Then mint a new key with the same scope.
+**Token leaked?** Open API Keys, find the row, and click **Revoke**. Revoked tokens are rejected from the next second. Then mint a new key with the same scope.
 </Callout>
 
 ## Rotation guidelines
 
-(Translate: 90-day cycle for secret keys; rotate immediately on team change; rotate-then-revoke to avoid downtime.)
+- Rotate **secret keys** on a regular cycle (e.g. every 90 days).
+- Rotate immediately when a team member with access leaves.
+- **Rotate then revoke**: mint the new key and deploy it first, confirm traffic is flowing, and only then revoke the old one — this avoids downtime.
 
 ## Troubleshooting
 
 | Error | Common cause | Fix |
 | --- | --- | --- |
-| `401 Unauthorized` | Wrong header | Use `X-API-Key: <token>`, not `Authorization: Bearer` |
-| `403 Forbidden` | Token has no access to that project | Create a key with the right scope |
-| `429 Too Many Requests` | Rate limit exceeded | Add caching, or contact Sawala to raise the limit |
+| `401 {"error":"Unauthorized"}` | Missing or invalid key | Send a valid token in `X-API-Key` (or `Authorization: Bearer`) |
+| `403 {"error":"Forbidden"}` | Key has no access to that project | Mint a key scoped to the right project |
+| `403 {"error":"Forbidden: ..."}` | A secret key was sent from a browser (with an `Origin`) | Use a public key in front-end code; keep secret keys server-side |
+| `404 {"error":"NOT_FOUND"}` | Entry or project doesn't exist | Check the project ID and the entry ID/slug |
+| `404 {"error":"SCHEMA_NOT_FOUND"}` | Schema slug doesn't exist | Check the schema slug in the path |
+| `400 {"error":"<message>"}` | Invalid parameter | Read the message and fix the offending query parameter |
 
 For the full endpoint list, see the [API reference](/en/docs/kontena/reference/api).

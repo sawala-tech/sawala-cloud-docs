@@ -3,31 +3,44 @@ title: What is Kontena
 description: Kontena is Sawala Cloud's headless CMS — a short introduction, when to use it, and how it differs from other CMSes.
 ---
 
-> **TODO: translate** — Indonesian source at [`what-is-kontena.mdx`](./what-is-kontena.mdx). Translators: render the Indonesian source into English below.
+**Kontena** is Sawala Cloud's _headless CMS_ — a Content Management System with no built-in front-end. Editors define _schemas_ (content shapes, e.g. a `post` with a `title`, `body`, and `coverImage`) and fill in _entries_ against them. Each published entry is then readable through a public REST API from anywhere — your website, mobile app, or another service.
 
-**Kontena** is Sawala Cloud's _headless CMS_ — a Content Management System with no built-in front-end. Editors define _schemas_ (content shapes, e.g. a `post` with `title`, `body`, `coverImage`) and fill in _entries_ against them. Each entry is readable through a public REST API from anywhere.
+Because Kontena ships no theme or template, you stay in full control of how content is rendered. The dashboard is for editing; your code decides the presentation.
 
 ## When to choose Kontena
 
-(Translate.)
+- You want non-technical editors to manage content without touching code.
+- You render content yourself — a static site, a single-page app, a mobile app, or a server — and just need a clean read API.
+- You need the same content in more than one language.
+- You want media (images, video, documents) managed alongside text, backed by [Berkasna](/en/docs/berkasna/what-is-berkasna).
 
 ## Core concepts
 
-- **Schema** — content shape.
-- **Collection** — many entries per schema.
-- **Single** — one entry per locale per schema.
-- **Public API key** — read-only token for client-side use.
+- **Schema** — a content type. Its `type` is either `single` or `collection`.
+- **Collection** — a schema that holds many entries (e.g. blog posts, products).
+- **Single** — a schema that holds one entry per locale (e.g. a homepage, an "About" page).
+- **Entry status** — every entry is either `draft` or `published`. The public API only ever returns `published` content.
+- **Public API key** — a read-only token (`pk_live_…`) that is safe to use from a browser. See [API keys and access](/en/docs/general-concepts/api-keys-and-access).
+
+Schemas live inside a project, and projects belong to an organization. See [organizations and projects](/en/docs/general-concepts/organizations-and-projects) for how that hierarchy works.
 
 ## Field types
 
-Kontena supports 14 field types: `text`, `richtext`, `markdown`, `number`, `boolean`, `date`, `select`, `multiselect`, `relation`, `media`, `json`, `repeater`, `blocks`, and `component`.
+Kontena supports **15** field types:
+
+`text`, `url`, `richtext`, `markdown`, `number`, `boolean`, `date`, `relation`, `media`, `blocks`, `component`, `json`, `select`, `multiselect`, and `repeater`.
+
+The `media` field type is wired directly to [Berkasna](/en/docs/berkasna/what-is-berkasna), so images and documents you reference in an entry are managed and served by Sawala Cloud's media product.
 
 ## Publication status
 
-(Translate the `draft` / `published` + `publicationState` section.)
+Every entry is either a **draft** or **published**. Drafts are visible in the dashboard while you work on them; only **published** entries are returned by the public API. This is true for any key — a secret key does not unlock drafts or a preview mode over the public surface. When you are ready, publish the entry from the dashboard and it becomes readable through the API.
 
 ## Multi-language
 
-(Translate the `single` / `collection` + `locale` section.)
+Kontena is multi-language by design:
+
+- A **single** schema stores one entry per locale — you maintain one `homepage` for `en` and one for `id`, for example.
+- A **collection** is filtered by locale at read time using the `locale` query parameter, so each locale's entries are returned independently.
 
 Continue to the [first tutorial](/en/docs/kontena/tutorial-first-blog) to build your first blog in 15 minutes.

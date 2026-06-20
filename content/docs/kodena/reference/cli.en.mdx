@@ -144,8 +144,12 @@ The CLI stores state under `~/.kodena/` (override with `KODENA_CONFIG_DIR`):
 
 | Variable | Effect |
 | --- | --- |
+| `KODENA_API_TOKEN` | Authenticate with this `koda_…` token instead of `~/.kodena/credentials` — the way to run in CI without `kodena login`. |
+| `KODENA_ORG` | Set the active org for the command (e.g. in CI). |
+| `KODENA_PROJECT` | Set the active project for the command. |
 | `KODENA_API_BASE` | Override the API base URL. |
-| `KODENA_PROJECT` | Override the active project for one command. |
 | `KODENA_CONFIG_DIR` | Relocate the credentials + config directory. |
+
+These make the CLI usable in CI: set `KODENA_API_TOKEN`, `KODENA_ORG`, and `KODENA_PROJECT`, then run `kodena deploy --build` with no interactive login. See [How to deploy from GitHub](/en/docs/kodena/how-to-deploy-from-github) for a complete workflow.
 
 For the authentication model behind `koda_…` tokens, see [API keys & access](/en/docs/general-concepts/api-keys-and-access#cli-tokens).

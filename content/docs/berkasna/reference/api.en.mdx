@@ -1,15 +1,9 @@
 ---
 title: Berkasna API Reference
-description: Berkasna's public REST API — upload, listing, and asset metadata endpoints.
+description: Berkasna's public REST API — presigned upload, completion, duplicate check, listing, and asset metadata.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
-
-> **TODO: translate** — Indonesian source at [`api.mdx`](./api.mdx).
-
-<Callout type="info">
-An interactive OpenAPI renderer will be added once the public spec is exposed.
-</Callout>
 
 ## Base URL
 
@@ -17,13 +11,15 @@ An interactive OpenAPI renderer will be added once the public spec is exposed.
 https://api.sawala.cloud/public/berkasna
 ```
 
-## Required header
+## Authentication
+
+Send your API key with every request:
 
 ```
 X-API-Key: <pk_live_… or sk_live_…>
 ```
 
-Upload endpoints require a secret key; list/get asset endpoints accept a public key.
+`Authorization: Bearer <key>` is also accepted. The presigned-upload and complete endpoints require a **secret** key; a publishable key there returns `403 SECRET_KEY_REQUIRED`. Listing, get-asset, and duplicate-check accept a public key. See [API keys and access](/en/docs/general-concepts/api-keys-and-access).
 
 ## Endpoints
 
@@ -31,78 +27,125 @@ Upload endpoints require a secret key; list/get asset endpoints accept a public 
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| `GET` | `/upload/check-duplicate?hash={sha256}` | Public | Check if an asset with this hash already exists |
-| `POST` | `/upload/presigned` | Secret | Request an upload slot (presigned URL) |
-| `POST` | `/upload/complete` | Secret | Mark upload complete |
+| `POST` | `/upload/presigned` | Secret | Request an upload slot (temporary upload URL) |
+| `POST` | `/upload/complete` | Secret | Mark an upload complete |
+| `GET` | `/check-duplicate?hash={sha256}` | Public | Check whether an asset with this hash already exists |
 
 ### Assets
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| `GET` | `/assets?limit=&cursor=&mimeCategory=` | Public | List project assets |
-| `GET` | `/assets/{id}` | Public | Fetch one asset with metadata |
+| `GET` | `/assets?limit=&cursor=&mimeCategory=` | Public | List assets (paginated) |
+| `GET` | `/assets/{id}` | Public | Fetch one asset with metadata, including its public `url` |
 
-## `POST /upload/presigned` body
+## `POST /upload/presigned`
+
+Request body:
 
 ```json
-{ "filename": "hero.jpg", "mimeType": "image/jpeg", "size": 523456 }
+{ "filename": "hero.png", "mimeType": "image/png", "size": 523456 }
 ```
+
+Optional field: `folderId`.
 
 Response:
 
 ```json
 {
   "assetId":   "ast_abc123",
-  "r2Key":     "uploads/2026/05/hero.jpg",
-  "uploadUrl": "https://upload.sawala.cloud/...?X-Amz-Signature=...",
-  "expiresAt": "2026-05-16T10:30:00Z"
+  "r2Key":     "acme/originals/ast_abc123/hero.png",
+  "uploadUrl": "https://...",
+  "expiresAt": "2026-06-20T10:30:00Z"
 }
 ```
 
-`uploadUrl` is valid for ~15 minutes.
+`uploadUrl` is a temporary URL valid for about 15 minutes (900 seconds). `PUT` the raw file bytes to it with **no** API key. The public URL of a completed public asset is `https://berkasna.sawala.cloud/<r2Key>`.
+
+## `POST /upload/complete`
+
+Request body:
+
+```json
+{ "assetId": "ast_abc123" }
+```
+
+Optional fields: `fileHash`, `width`, `height`.
+
+Response (status only — no `url`):
+
+```json
+{ "id": "ast_abc123", "status": "completed" }
+```
+
+To read the public URL, call `GET /assets/{id}`.
+
+## `GET /check-duplicate`
+
+```
+GET /check-duplicate?hash=<sha256>
+```
+
+Response:
+
+```json
+{ "isDuplicate": true, "assetId": "ast_abc123" }
+```
+
+There is no URL in this response. To get the URL for an existing asset, call `GET /assets/{assetId}`.
 
 ## Asset model
 
 ```json
 {
   "id":        "ast_abc123",
-  "filename":  "hero.jpg",
-  "mimeType":  "image/jpeg",
+  "filename":  "hero.png",
+  "mimeType":  "image/png",
   "size":      523456,
   "status":    "completed",
-  "url":       "https://files.sawala.cloud/proj_xxx/uploads/2026/05/hero.jpg",
+  "url":       "https://berkasna.sawala.cloud/acme/originals/ast_abc123/hero.png",
   "title":     null,
   "alt":       null,
   "tags":      [],
   "width":     1920,
   "height":    1080,
-  "createdAt": "2026-05-16T10:25:00Z"
+  "createdAt": "2026-06-20T10:25:00Z"
 }
 ```
 
-(Translate the surrounding prose.)
+An asset's `status` is `pending` while bytes are in flight and `completed` once the upload is marked complete. The public `url` is present for public, completed assets; it follows the pattern `https://berkasna.sawala.cloud/<org-slug>/originals/<assetId>/<filename>`.
 
 ## Listing query parameters
 
 | Param | Values | Description |
 | --- | --- | --- |
-| `limit` | integer (default 20, max 100) | Assets per page |
+| `limit` | integer (default 25, max 100) | Assets per page |
 | `cursor` | string | Cursor for the next page |
-| `mimeCategory` | `image`, `video`, `pdf`, `document` | Filter by category |
+| `mimeCategory` | MIME-type prefix, e.g. `image`, `video`, `application` | Filter by MIME-type prefix |
 
-## Limits
+`mimeCategory` is a prefix match — it matches assets whose MIME type starts with `<value>/` (for example `image` matches `image/png` and `image/webp`). Use the actual MIME prefix; values like `pdf` or `document` will not match (the underlying types are `application/pdf`, etc.).
 
-- **Max file size:** 200 MB
-- **Accepted MIME types:** `image/*`, `video/mp4`, `video/webm`, `video/quicktime`, `application/pdf`, Office docs
-- **Upload rate limit:** 60 `presigned` requests/min per API key
+## Limits (public API)
+
+- **Accepted types:** `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`
+- **Max file size:** 5 MB
+
+<Callout type="info">
+These image-only / 5 MB limits apply to the **public API**. Other formats and larger files are handled through the dashboard, not this surface.
+</Callout>
 
 ## Error codes
 
-| HTTP | Cause |
-| --- | --- |
-| `400` | Invalid body, unsupported MIME, file > 200 MB |
-| `401` | Wrong/missing API key |
-| `403` | Token has no access, or public key used for a secret-only endpoint |
-| `404` | Asset not found |
-| `409` | `complete` called before file was PUT |
-| `429` | Rate limit exceeded |
+Errors are returned as a flat object:
+
+```json
+{ "error": "CODE" }
+```
+
+| HTTP | `error` | Cause |
+| --- | --- | --- |
+| `400` | (validation) | Invalid request body |
+| `400` | `UNSUPPORTED_MEDIA_TYPE` | MIME type not in the allowed image list |
+| `400` | `FILE_TOO_LARGE` | File exceeds 5 MB |
+| `401` | — | Missing or invalid API key |
+| `403` | `SECRET_KEY_REQUIRED` | Publishable key used on `/upload/presigned` or `/upload/complete` |
+| `404` | `ASSET_NOT_FOUND` | No asset with that id |

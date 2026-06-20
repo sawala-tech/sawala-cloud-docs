@@ -1,0 +1,60 @@
+---
+title: Akuna API & embed reference
+description: Akuna's public config endpoint and the @sawala/akuna-react package — props, hooks, and exports.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Most integrations use the [`@sawala/akuna-react`](#sawalaakuna-react) embed, which calls the config endpoint for you. Both surfaces are documented here.
+
+## Base URL
+
+```
+https://api.sawala.cloud/public/akuna
+```
+
+## `GET /config`
+
+Returns the boot configuration for the **active connection** in the API key's scope. Authenticate with a publishable [API key](/en/docs/general-concepts/api-keys-and-access) scoped for Akuna (`X-API-Key`).
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `clerkPublishableKey` | string | Your Clerk app's publishable key, for booting Clerk |
+| `clerkInstanceDomain` | string | The Clerk instance domain |
+| `appearance` | object \| null | Optional appearance config |
+| `signUpEnabled` | boolean | Whether sign-up is offered |
+| `organizationsEnabled` | boolean | Whether Clerk organizations are enabled |
+
+No secret fields are ever returned. If no active connection exists for the scope, the endpoint responds `404 NO_ACTIVE_CONNECTION`.
+
+## `@sawala/akuna-react`
+
+```bash
+npm install @sawala/akuna-react @clerk/clerk-react react react-dom
+```
+
+### `<MembershipProvider>`
+
+Fetches `/config` with your API key and boots Clerk. Props:
+
+| Prop | Required | Notes |
+| --- | --- | --- |
+| `apiKey` | yes | Sawala project-scoped publishable key (`pk_live_…` / `pk_test_…`) for the Akuna product |
+| `baseUrl` | no | Override the gateway base. Defaults to `https://api.sawala.cloud/public/akuna` |
+| `loadingFallback` | no | Rendered while the config loads |
+| `errorFallback` | no | `(error) => ReactNode`, rendered if the config fetch fails |
+
+### Hooks
+
+- `useMember()` — the signed-in member: `{ member, isLoaded }`.
+- `useMembershipConfig()` — the resolved connection config.
+
+### Re-exported Clerk components
+
+`SignIn`, `SignUp`, `UserButton`, `SignedIn`, `SignedOut`, `RedirectToSignIn` — use them as you would from `@clerk/clerk-react`, but booted through `<MembershipProvider>`.
+
+<Callout type="info">
+The embed needs an active [connection](/en/docs/akuna/how-to-connect-clerk) for the key's scope. Without one, `/config` returns `404 NO_ACTIVE_CONNECTION` and the provider renders its `errorFallback`.
+</Callout>
+
+For a working setup, see [Add membership to a React app](/en/docs/akuna/tutorial-first-membership).

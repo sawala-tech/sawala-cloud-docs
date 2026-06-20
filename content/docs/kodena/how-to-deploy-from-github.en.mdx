@@ -1,0 +1,111 @@
+---
+title: How to deploy from GitHub
+description: Connect a GitHub repository to a Kodena script so you can rebuild and redeploy it with one click from the Kodena dashboard.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Connect a **GitHub repository** to a script, then **rebuild and redeploy it with one click** from the Kodena dashboard — Kodena runs your repo's build-and-deploy workflow for you. This is handy when your site is built from a repo (for example, it reads content from Kontena) and you want to rebuild after editing content, without running the CLI locally.
+
+## 1. Install and connect GitHub
+
+In the **Kodena dashboard** at [kodena.sawala.cloud](https://kodena.sawala.cloud), open the **GitHub** section and start the connect flow. This:
+
+1. Installs the **Kodena Deploy** GitHub App on your GitHub account or organization, and
+2. Links that GitHub owner to your Sawala organization.
+
+When GitHub asks, you can grant access to **all** repositories or just **selected** ones.
+
+## 2. Grant the repos you'll deploy
+
+After connecting, choose which of the owner's repositories this Sawala organization may deploy. Only granted repos are available to link to a script.
+
+<Callout type="info">
+Grants are **per Sawala organization**. If several organizations connect the same GitHub owner, each one only sees the repos it was granted — sharing a GitHub org doesn't share deploy access.
+</Callout>
+
+## 3. Link a repo to a script
+
+Give a script a **deploy source**: the repository, the deploy **workflow** file, and the **branch** to build from. One repo can back several scripts, and one script is driven by one repo + branch.
+
+## 4. Add the deploy workflow to your repo
+
+When you click **Rebuild & Deploy**, Kodena runs a **GitHub Actions workflow** in your repo — by default `.github/workflows/deploy.yml` — using GitHub's `workflow_dispatch`. The workflow builds your project and runs `kodena deploy`. Kodena passes two inputs when it triggers a run (`kodena_deploy_id` and `kodena_script`), so your workflow must declare them.
+
+Here's a complete, working example:
+
+```yaml title=".github/workflows/deploy.yml"
+name: deploy
+
+on:
+  workflow_dispatch:
+    # Kodena sends these inputs when it triggers a deploy. GitHub rejects a
+    # dispatch carrying inputs the workflow doesn't declare, so they must exist
+    # — even though a plain `git push` leaves them blank.
+    inputs:
+      kodena_deploy_id:
+        description: "Correlation id from Kodena (blank for manual runs)"
+        required: false
+        default: ""
+      kodena_script:
+        description: "Target Kodena script slug"
+        required: false
+        default: ""
+  # Optional: also deploy on a plain push. The Kodena "Rebuild & Deploy"
+  # button uses workflow_dispatch (above) — add this only if you ALSO want
+  # a git push to deploy.
+  push:
+    branches: [main]
+
+# Surface the correlation id in the run name so Kodena can pin the exact run
+# it triggered. Blank for plain git-push runs.
+run-name: >-
+  deploy ${{ inputs.kodena_deploy_id && format('· kodena {0}', inputs.kodena_deploy_id) || '' }}
+
+concurrency:
+  group: deploy-${{ github.repository }}
+  cancel-in-progress: false # never interrupt an in-flight upload
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Build and deploy to Kodena
+        run: npx @sawala/kodena deploy --build
+        env:
+          KODENA_API_TOKEN: ${{ secrets.KODENA_API_TOKEN }}
+          KODENA_ORG: your-org-handle
+          KODENA_PROJECT: your-project-slug
+```
+
+Three things make this work:
+
+- **`workflow_dispatch` inputs** — `kodena_deploy_id` and `kodena_script` must be declared, or GitHub rejects Kodena's trigger.
+- **`run-name`** includes the deploy id so Kodena can match the run it started and report its status.
+- **`KODENA_API_TOKEN`** authenticates the CLI in CI — no `kodena login`. The slug comes from your `kodena.json`; set `KODENA_ORG` / `KODENA_PROJECT` to your target.
+
+<Callout type="warn">
+Add your CLI token as a repository **secret** named `KODENA_API_TOKEN` (GitHub → Settings → Secrets and variables → Actions). Mint a `koda_…` token in the Sawala dashboard under **Organization Settings → CLI tokens** — see [CLI tokens](/en/docs/general-concepts/api-keys-and-access#cli-tokens). Never commit a token.
+</Callout>
+
+## 5. Rebuild from the dashboard
+
+In the Kodena dashboard, open your script and click **Rebuild & Deploy**. Kodena dispatches your repo's workflow with a correlation id, the workflow builds and ships your project, and the dashboard shows the run's status — all **without leaving Kodena or opening GitHub**. Think of it as a shortcut for running the deploy workflow by hand.
+
+This is the heart of the integration: a one-click rebuild, ideal for refreshing a site after you publish content edits in the dashboard.
+
+<Callout type="info">
+Want a plain `git push` to deploy too? Keep the optional `push:` trigger in the workflow above — it's independent of the dashboard button. And the [`kodena` CLI](/en/docs/kodena/reference/cli) still works for local or CI deploys; none of these are mutually exclusive.
+</Callout>
+
+## Disconnecting
+
+Removing the repo grant (or uninstalling the GitHub App) disables the dashboard's Rebuild & Deploy for that script. Anything already deployed keeps serving; you can still redeploy manually with the CLI.
+
+See the [CLI reference](/en/docs/kodena/reference/cli) for manual deploys and [What is Kodena](/en/docs/kodena/what-is-kodena) for the bigger picture.

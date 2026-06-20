@@ -1,128 +1,168 @@
 ---
-title: Cara embed form
-description: Dua cara menempel form Formulir di situs Anda — iframe satu baris atau komponen React. Kapan pakai yang mana.
+title: How to embed a form
+description: Three ways to embed a Formulir form on your site — hosted iframe, the React component, or a script tag. When to pick which, with the correct embed URLs.
 ---
 
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Formulir mendukung dua pola embed yang sengaja berbeda. Pilih sesuai kebutuhan integrasi Anda.
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
 
-## Bandingan singkat
+Formulir supports three embed modes. Pick by integration need.
 
-| | iframe | React component |
-| --- | --- | --- |
-| Setup | Salin satu tag HTML | `npm install @sawala/formulir-react` |
-| Style | Isolated dari situs Anda | Mengikuti style situs Anda |
-| Cocok untuk | Situs apa pun (WordPress, Webflow, static HTML) | Aplikasi React (Next.js, Vite, CRA) |
-| Cross-origin | Sandboxed (lebih aman) | Inline (akses ke state app) |
-| Custom validation tambahan | Tidak | Ya, via props/hooks |
+## Comparison
 
-## iframe embed
+| | Iframe | React component | Script tag |
+| --- | --- | --- | --- |
+| Setup | Paste one HTML tag | `npm install @sawala/formulir-react` | Two tags + a mount `<div>` |
+| Rendering | Cross-origin iframe | Inline in your DOM | Inline in your DOM |
+| Style | Isolated from your site | Inherits + themeable | Themeable via CSS variables |
+| Fits | Any site (WordPress, Webflow, static HTML) | React 18+ apps (Next.js, Vite) | Non-React hosts that want native DOM |
+| Custom rendering | No | Yes — headless mode and hooks | No |
 
-Satu tag HTML, dapat dipakai di situs mana pun yang membolehkan iframe.
+All three modes require a project-scoped publishable key (`pk_live_…`) for the `formulir` product. See [API keys and access](/id/docs/general-concepts/api-keys-and-access).
+
+## Iframe embed
+
+The simplest option. The form is rendered and hosted by Sawala at `https://formulir.id`.
 
 ```html
 <iframe
-  src="https://formulir.id/embed/your-form-slug"
+  src="https://formulir.id/embed/<projectId>/<formSlug>?key=pk_live_…"
   style="width: 100%; height: 600px; border: 0;"
   loading="lazy"
-  title="Hubungi kami"
+  title="Contact us"
 ></iframe>
 ```
 
-Ganti `your-form-slug` dengan slug form Anda (dapat dilihat di dashboard).
+<Callout type="warn">
+The `?key=pk_live_…` parameter is **required** — a keyless embed URL renders an error page. The key must be project-scoped to the project given in `<projectId>`. The dashboard form editor generates this URL with your project ID and key already filled in.
+</Callout>
 
-### Auto-resize tinggi iframe
+The iframe is a fixed-size HTML page, so give it a height that fits your form. It automatically adapts to light and dark mode based on the visitor's system preference.
 
-iframe memerlukan tinggi tetap (di atas saya pakai `600px`). Untuk auto-resize sesuai isi form, tambahkan skrip kecil:
+### Pre-filling and hidden fields
+
+To pre-populate fields, add `values[fieldName]=...` query parameters. This is the only way to supply a value for a field marked **Hidden** in the form editor:
 
 ```html
 <iframe
-  id="formulir-frame"
-  src="https://formulir.id/embed/your-form-slug"
-  style="width: 100%; border: 0;"
-  loading="lazy"
+  src="https://formulir.id/embed/<projectId>/<formSlug>?key=pk_live_…&values[report_slug]=annual-report-2024"
 ></iframe>
-
-<script>
-  window.addEventListener('message', (e) => {
-    if (e.origin !== 'https://formulir.id') return;
-    if (e.data?.type === 'formulir:resize') {
-      document.getElementById('formulir-frame').style.height = e.data.height + 'px';
-    }
-  });
-</script>
 ```
 
-Iframe mengirim event `formulir:resize` setiap kali tingginya berubah (misalnya saat field error muncul).
+### Locale
+
+If the form's operator filled in per-locale labels and success messages, pick one with `?locale=`:
+
+```html
+<iframe src="https://formulir.id/embed/<projectId>/<formSlug>?key=pk_live_…&locale=id"></iframe>
+```
 
 ## React component
 
-Untuk situs React, install package dan import komponennya:
+For React 18+ apps. Install the package, import the stylesheet, wrap your tree in a provider, and render the form.
 
 ```bash
 npm install @sawala/formulir-react
 ```
 
 ```tsx
-import { FormulirForm } from '@sawala/formulir-react';
+'use client'
+import '@sawala/formulir-react/styles.css'
+import { FormulirProvider, FormulirForm } from '@sawala/formulir-react'
 
 export default function ContactPage() {
   return (
-    <div className="max-w-xl mx-auto">
-      <h1>Hubungi Kami</h1>
-      <FormulirForm
-        slug="kontak-kami"
-        onSubmit={(submission) => {
-          console.log('Submitted:', submission);
-        }}
-        onError={(error) => {
-          console.error('Submission failed:', error);
-        }}
-      />
-    </div>
-  );
+    <FormulirProvider apiKey="pk_live_…">
+      <FormulirForm slug="contact" onSubmit={(s) => console.log(s)} />
+    </FormulirProvider>
+  )
 }
 ```
 
-Form di-render langsung di DOM Anda — style situs (termasuk Tailwind, CSS modules, atau styled-components) berlaku.
+### `<FormulirProvider>` props
 
-### Props yang tersedia
-
-| Prop | Tipe | Deskripsi |
+| Prop | Type | Description |
 | --- | --- | --- |
-| `slug` | `string` | Slug form (wajib) |
-| `onSubmit` | `(submission) => void` | Dipanggil setelah submission sukses |
-| `onError` | `(error) => void` | Dipanggil saat submission gagal |
-| `className` | `string` | Class CSS untuk wrapper |
-| `initialValues` | `Record<string, any>` | Nilai awal field-field |
-| `disabled` | `boolean` | Disable seluruh form |
+| `apiKey` | `string` | Project-scoped publishable key (required) |
+| `baseUrl` | `string` | Override the gateway URL (default `https://api.sawala.cloud/public/formulir`) |
+| `appearance` | `FormulirAppearance` | Clerk-style theming — `variables` (CSS variables) and `elements` (class names per slot) |
+| `locale` | `string` | Default BCP-47 locale for every form in this tree |
 
-## Kustomisasi style (iframe)
+### `<FormulirForm>` props
 
-iframe punya tema bawaan. Untuk override warna utama, tambahkan parameter `?accent=#hexcode` ke URL embed:
-
-```html
-<iframe src="https://formulir.id/embed/your-form-slug?accent=%232563eb" ...></iframe>
-```
-
-(Note: `#` di URL harus di-encode sebagai `%23`.)
+| Prop | Type | Description |
+| --- | --- | --- |
+| `slug` | `string` | Form slug (required) |
+| `onSubmit` | `(result) => void` | Called after a successful submission |
+| `onError` | `(error) => void` | Called when submission fails |
+| `appearance` | `FormulirAppearance` | Per-form theming overrides (merged over the provider's) |
+| `className` | `string` | CSS class on the form root |
+| `submitLabel` | `string` | Override the submit button label |
+| `submittingLabel` | `string` | Override the label shown while submitting |
+| `values` | `Record<string, unknown>` | One-shot pre-fill applied when the definition resolves (use this for hidden fields) |
+| `locale` | `string` | Per-form BCP-47 locale (overrides the provider's `locale`) |
 
 <Callout type="info">
-Style kustom yang lebih dalam (font family, ukuran, layout) hanya tersedia di React component, bukan iframe. Pilih React component jika Anda butuh form yang benar-benar match dengan brand situs Anda.
+Pre-fill uses the `values` prop. It is a one-shot pre-fill applied once when the form definition resolves, not a controlled-input mechanism — subsequent changes to the prop are ignored.
 </Callout>
 
-## Mengelola CSP
+### Theming
 
-Jika situs Anda memakai Content Security Policy ketat, izinkan iframe ke `formulir.id`:
+Three escalating tiers:
+
+1. **CSS variables** — override any `--formulir-*` variable in your own CSS.
+2. **`appearance` prop** — pass `variables` (inline CSS variables) and `elements` (class names merged into slots such as `submitButton`, `inputField`, `errorText`).
+3. **Headless** — take full control of the markup with `<FormulirForm.Headless>` or the `useFormulirForm` hook.
+
+```tsx
+import { useFormulirForm } from '@sawala/formulir-react'
+
+const { definition, values, errors, status, submitting, error,
+        setValue, submit, reset } = useFormulirForm({ slug: 'contact' })
+```
+
+```tsx
+<FormulirForm.Headless slug="contact">
+  {({ definition, values, errors, setValue, submit, submitting, status }) => (
+    /* render whatever markup you like */
+  )}
+</FormulirForm.Headless>
+```
+
+## Script tag
+
+For non-React hosts that still want the form rendered natively in the DOM (rather than in an iframe). Drop in the stylesheet, the script with your key, and a mount `<div>`:
+
+```html
+<link rel="stylesheet" href="https://formulir.id/formulir.css">
+<script src="https://formulir.id/formulir.js" data-formulir-key="pk_live_…"></script>
+<div data-formulir-slug="contact"></div>
+```
+
+## Spam protection (Turnstile)
+
+Formulir uses Cloudflare **Turnstile**.
+
+- **Iframe** — zero-config. When you enable spam protection on a form, the hosted iframe renders a Sawala-managed Turnstile challenge automatically.
+- **React component and script tag** — bring-your-own. In **Settings → Projects → Edit → Spam protection**, paste your own Turnstile sitekey and secret (from `dash.cloudflare.com → Turnstile`), then flip the per-form **Spam protection** switch. The React component then renders the challenge automatically — no extra code.
+
+In headless mode you render Turnstile yourself and pass the token to `submit({ 'cf-turnstile-response': token })`.
+
+Spam-protection errors surface as `CAPTCHA_REQUIRED`, `CAPTCHA_FAILED`, or `CAPTCHA_NOT_CONFIGURED`. See the [API reference](/id/docs/formulir/reference/api#error-codes).
+
+## Content Security Policy
+
+If your site sends a strict `Content-Security-Policy`, allow:
 
 ```
-Content-Security-Policy: frame-src https://formulir.id
+frame-src   https://formulir.id
+connect-src https://api.sawala.cloud
 ```
 
-Untuk React component, package `@sawala/formulir-react` melakukan fetch ke `https://api.sawala.cloud/public/formulir`, jadi izinkan host tersebut di `connect-src`:
+When Turnstile is enabled on the React or script-tag paths, also allow Cloudflare's challenge host:
 
 ```
-Content-Security-Policy: connect-src https://api.sawala.cloud
+script-src  https://challenges.cloudflare.com
+frame-src   https://challenges.cloudflare.com
 ```

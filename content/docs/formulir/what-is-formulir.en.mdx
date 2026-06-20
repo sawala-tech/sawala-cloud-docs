@@ -1,33 +1,43 @@
 ---
 title: What is Formulir
-description: Formulir is Sawala Cloud's form builder — create forms, embed them, collect submissions, all without code.
+description: Formulir is Sawala Cloud's form builder and submission inbox — create forms, embed them anywhere, and collect responses without writing a backend.
 ---
 
-> **TODO: translate** — Indonesian source at [`what-is-formulir.mdx`](./what-is-formulir.mdx).
-
-**Formulir** is Sawala Cloud's form builder. You define fields (text, email, dropdown, file upload, and more) in the dashboard, then embed the form on your site or app — either with a one-line iframe or a React component. Submissions are stored on Sawala and accessible from the dashboard or via API.
+**Formulir** is Sawala Cloud's form builder and submission inbox. You define a form's fields and settings in the dashboard, embed the form on your site or app, and every response lands in your dashboard inbox. There is no server to run — Formulir stores submissions, handles file uploads, and protects against spam for you.
 
 ## When to choose Formulir
 
-(Translate.)
+- You need a contact, signup, or lead-capture form on a static site, a CMS (WordPress, Squarespace), or a React app — without standing up your own backend.
+- You want submissions collected in one inbox, with file uploads and spam protection handled for you.
+- You want to embed the same form in more than one place and manage it from a single dashboard.
 
 ## Core concepts
 
-- **Form** — name, slug, list of fields, settings (e.g. redirect URL after submit).
-- **Field** — one input. Supported types: text, email, textarea, number, checkbox, radio, select, file upload.
-- **Submission** — one filled instance of the form. Stored with timestamp + metadata.
-- **Embed** — how the form renders on your site: iframe or React component.
+- **Form** — a name, a unique slug, an ordered list of fields, and settings (visibility, success message or redirect, spam protection).
+- **Field** — one input, identified by its `name`. Formulir uses the shared Sawala field-type set: `text`, `url`, `richtext`, `markdown`, `number`, `boolean`, `date`, `relation`, `media`, `blocks`, `component`, `json`, `select`, `multiselect`, and `repeater`. Long text uses `richtext` or `markdown` (rendered as a textarea); file upload uses `media`.
+- **Submission** — one completed response. Stored with a timestamp, the submitter's IP address, and user agent.
+- **Embed** — how the form renders on your site: a hosted iframe, the `@sawala/formulir-react` component, or a script tag.
 
-## Two embed modes
+## Three ways to embed
 
-(Translate iframe vs React component comparison.)
+| Mode | Best for | What you ship |
+| --- | --- | --- |
+| **Iframe** | Static sites, WordPress, any HTML host | One `<iframe>` tag |
+| **React component** | React 18+ apps that want the form in their own DOM | `@sawala/formulir-react` |
+| **Script tag** | Non-React hosts that want native DOM rendering | `formulir.js` + a mount `<div>` |
 
-## File upload
+See [how to embed a form](/en/docs/formulir/how-to-embed-form) for each option.
 
-`file` type fields integrate automatically with [Berkasna](/en/docs/berkasna/what-is-berkasna).
+## File uploads
 
-## Anti-spam
+`media` fields accept file uploads. From your side it is a single step — you submit the file with the rest of the form and Formulir stores it for you. Uploaded files are managed by [Berkasna](/en/docs/berkasna/what-is-berkasna) under the hood.
 
-Toggle bot protection per form in settings — Formulir handles the rest.
+## Spam protection
+
+Formulir uses Cloudflare **Turnstile**. On the Sawala-hosted iframe it is zero-config (Sawala-managed). On the API and React paths it is bring-your-own: paste your own Turnstile sitekey and secret in project settings, then toggle protection per form. See [how to embed a form](/en/docs/formulir/how-to-embed-form#spam-protection-turnstile).
+
+## API access
+
+Formulir's public API needs a project-scoped publishable key (`pk_live_…`). See [API keys and access](/en/docs/general-concepts/api-keys-and-access) and the [API reference](/en/docs/formulir/reference/api).
 
 Continue to the [first form tutorial](/en/docs/formulir/tutorial-first-form).
