@@ -1,0 +1,62 @@
+---
+title: What is Datana
+description: Datana is Sawala Cloud's structured-data platform — define typed collections, store records, and query them server-side, private by default with opt-in public read.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+**Datana** is Sawala Cloud's **structured-data platform**. You define typed **collections** in the dashboard, store **records** that conform to them, and read them back through a server-side query API that can filter, sort, paginate, aggregate, and follow relations. Everything is **private by default**, with opt-in **public read**.
+
+## When to choose Datana
+
+Datana is for **data**, where [Kontena](/id/docs/kontena/what-is-kontena) is for **editorial content**:
+
+- Choose **Kontena** for page-style authored content — articles, marketing pages, a blog.
+- Choose **Datana** when you need typed, queryable data your app builds directly against — a product catalog you filter and sort, a directory you search, application data with relations between records.
+
+If you find yourself wanting to *query* content (filter by field, sort, aggregate, join across records) rather than just render it, that's Datana.
+
+## Core concepts
+
+- **Collection** — a schema definition: a `slug`, a set of **typed fields**, and a visibility switch (`private` by default, or `public`). Fields are typed (`text`, `select`, `relation`, `repeater`, `media`, and more), not free-form strings.
+- **Record** — one entry conforming to a collection, stored as structured data. Each record has a status: `draft` (default) or `published`.
+- **Visibility & publishing** — a record is only exposed on the public API when **both** are true: its collection is `public` **and** the record is `published`.
+
+<Callout type="info">
+Datana fields are **typed**. A `relation`, `media`, or `repeater` value is an object or array, not a plain string — read the collection's schema and work with each field by its type.
+</Callout>
+
+## Server-side query
+
+Reads run in the database, not in your client, so you can ask for exactly the slice you need:
+
+- **Filter** — `field:value`, `field:in:a,b`, `field:gte:N`, `field:lte:N`.
+- **Sort** — by `createdAt`, `id`, or any field.
+- **Paginate** — cursor-based.
+- **Aggregate** — `count`, `groupBy`, `distinct`.
+- **Populate relations** — inline related records on read with `?populate=field` (or `*`).
+
+## Access: publishable vs secret keys
+
+Datana uses the same [API key](/id/docs/general-concepts/api-keys-and-access) model as the rest of the platform, with two tiers:
+
+| Key | Token | Can do |
+| --- | --- | --- |
+| **Publishable** | `pk_live_…` | Read **public, published** records — public fields only. Safe for the browser. |
+| **Secret** | `sk_live_…` | Everything above, **plus** private fields and the ability to write records. **Server-side only.** |
+
+<Callout type="warn">
+Secret keys must never ship in a browser — a secret key sent with a browser origin is rejected. Keep it on your server.
+</Callout>
+
+## Reading from your app
+
+The official client wraps the public read API with typed methods:
+
+```bash
+npm install @sawala/datana-client
+```
+
+See [CLI & SDKs](/id/docs/general-concepts/cli-and-sdk) for all the developer tools, and [API keys & access](/id/docs/general-concepts/api-keys-and-access) for the key model.

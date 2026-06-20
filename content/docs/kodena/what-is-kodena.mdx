@@ -1,0 +1,49 @@
+---
+title: What is Kodena
+description: Kodena is Sawala Cloud's hosting & deployment product — ship a static site or a small Worker to the edge, with custom domains and one-command deploys.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+**Kodena** is Sawala Cloud's **hosting and deployment** product. It takes a built site — a folder of static assets, or a small Worker — and serves it on Sawala's edge network at a public URL, with custom domains and fast, incremental deploys. It's where the sites you build with the rest of the platform actually go live.
+
+## When to choose Kodena
+
+Reach for Kodena when you have something to *host*:
+
+- A static site (from any framework — Next.js via OpenNext, Astro, plain HTML) that you want online without running your own server.
+- A small Worker that serves an app or an API at the edge.
+- A landing page or marketing site you want to spin up from a template in minutes.
+
+## Two ways to deploy
+
+- **Instant Page** — pick a template, a few locales, and a name in the dashboard. Kodena provisions the whole stack for you — content schemas, starter content, a contact form, and the deployed site — in one shot. Best when you want a working site fast and don't need a custom codebase.
+- **Bring your own** — build your project locally and deploy your own bundle, either from the dashboard or with the [`kodena` CLI](/id/docs/general-concepts/cli-and-sdk). Best when you control the code.
+
+## Core concepts
+
+- **Org handle** — each organization claims a short, unique **handle** (1–16 lowercase letters and digits). It's the rightmost part of every Kodena URL.
+- **Script** — one deployed unit: either a static-asset bundle or a Worker. Each script has a **slug** that's unique within your org.
+- **Tenant URL** — a deployed script is served at `<script-slug>-<org-handle>.kodena.id`. For example, a `marketing-site` script under the handle `acme` lives at `marketing-site-acme.kodena.id`.
+- **Custom domains** — point your own domain at a script. Kodena can also **register `.id` domains** for you.
+
+## Deploying from the terminal
+
+The `kodena` CLI is the canonical way to ship a bring-your-own bundle:
+
+```bash
+npm i -g @sawala/kodena
+kodena login                 # opens your browser to authorize
+kodena init                  # scaffold from a template (optional)
+kodena deploy --build        # build and deploy
+```
+
+<Callout type="info">
+A one-line copy fix doesn't need a full redeploy — Kodena patches individual changed files, so only the bytes that changed are uploaded.
+</Callout>
+
+Kodena also has its own dashboard at **`kodena.sawala.cloud`**, where you manage scripts, domains, and (for Instant Pages) automatic rebuilds. Your Sawala sign-in carries over there — see [Accounts & sign-in](/id/docs/general-concepts/accounts-and-sign-in).
+
+See [CLI & SDKs](/id/docs/general-concepts/cli-and-sdk) for the full CLI walkthrough.

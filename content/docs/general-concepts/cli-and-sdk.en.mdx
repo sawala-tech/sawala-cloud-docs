@@ -41,7 +41,7 @@ One binary, `sawala`, for the core content products — **Kontena**, **Formulir*
 
 ```bash
 npm i -g @sawala/cli
-sawala login                 # paste a CLI token from the dashboard
+sawala login                 # opens your browser to authorize — nothing to copy
 sawala org use <org-slug>    # if you belong to more than one org
 sawala project use <project> # pick the target project
 
@@ -56,7 +56,7 @@ The canonical tool for the **Kodena** hosting product — ship a `worker.js` + a
 
 ```bash
 npm i -g @sawala/kodena
-kodena login
+kodena login                 # opens your browser to authorize
 kodena init                  # scaffold from a template (optional)
 kodena deploy --build        # build and deploy
 ```
@@ -64,7 +64,9 @@ kodena deploy --build        # build and deploy
 Both CLIs require **Node ≥ 20**.
 
 <Callout type="info">
-**CLIs use CLI tokens, not API keys.** Mint a `koda_…` token in the dashboard under **Organization Settings → CLI tokens**, then run `sawala login` (or `kodena login`) and paste it. The same token works for both binaries. Credentials are stored locally in your home directory.
+**Signing in is one command.** Run `sawala login` (or `kodena login`) and your browser opens the dashboard's authorization page. Approve there and the CLI is signed in — there's **no token to copy or paste**. The credential is fetched directly by the CLI and stored locally in your home directory; the same sign-in works for both binaries.
+
+Prefer to paste a token — or on a headless machine or CI? That flow is still supported: pass `--no-browser` to paste a token you minted under **Organization Settings → CLI tokens**, or `--token <koda_…>` to sign in non-interactively. See [API keys & access](/en/docs/general-concepts/api-keys-and-access#cli-tokens).
 </Callout>
 
 ## MCP servers — for AI agents

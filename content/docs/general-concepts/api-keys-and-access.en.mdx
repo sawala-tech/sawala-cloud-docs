@@ -1,6 +1,6 @@
 ---
 title: API keys & access
-description: How Sawala Cloud authenticates API requests — public vs secret keys, project scope, and the base URL for every product's public API.
+description: How Sawala Cloud authenticates access — public vs secret API keys, project scope, the public API base URLs, and CLI tokens for the command-line tools.
 ---
 
 import { Callout } from 'fumadocs-ui/components/callout';
@@ -57,8 +57,44 @@ See each product's API reference for the full endpoint list — for example, the
 | `403 Forbidden` | Key isn't scoped to that project | Mint a key with the right project scope |
 | `429 Too Many Requests` | Rate limit hit | Add caching, or ask Sawala to raise your limit |
 
-<Callout type="info">
-The dashboard, the CLIs, and the MCP servers authenticate differently under the hood — see [CLI & SDKs](/en/docs/general-concepts/cli-and-sdk). As an app developer using an SDK or the REST API directly, you only need an **API key** as described here.
+## CLI tokens
+
+A **CLI token** is a different kind of credential for a different job. Where an API key authorizes an *application* to reach one product's REST API, a CLI token authorizes *you* — it identifies your account so the command-line tools and MCP servers can act with your permissions.
+
+| | API key | CLI token |
+| --- | --- | --- |
+| Looks like | `pk_live_…` / `sk_live_…` | `koda_…` |
+| Identifies | An application | You (your account) |
+| Used by | SDKs, the REST API | `sawala` & `kodena` CLIs, MCP servers |
+| Scope | A product + project(s) | Your org/project context, across CLI-supported products |
+| Obtained via | Minting under Organization Settings → API Keys | `sawala login` / `kodena login` (browser); or minted under CLI tokens for CI |
+
+### Signing in with the browser flow
+
+You normally don't mint or copy a CLI token by hand. Just run the login command:
+
+```bash
+sawala login   # or: kodena login
+```
+
+The CLI opens your browser to the dashboard's authorization page. Approve the request there and you're signed in — **nothing to copy or paste**. Under the hood the CLI runs a loopback authorization flow, so the token is delivered straight to the CLI over HTTPS and never travels through the browser. It's then stored locally on your machine, and the same sign-in works for both `sawala` and `kodena`.
+
+### Pasting a token (headless, CI, or by choice)
+
+The copy-paste flow is still fully supported — use it whenever you prefer it, or when there's no browser available (a server, a container, a CI job):
+
+1. In the [dashboard](https://sawala.cloud/dashboard), open **Organization Settings → CLI tokens** and create a token (shown only once).
+2. Provide it without a browser:
+
+   ```bash
+   sawala login --no-browser     # prompts you to paste the token
+   sawala login --token koda_…    # non-interactive, e.g. in CI
+   ```
+
+<Callout type="warn">
+A CLI token acts on your behalf — treat it like a password. Don't share or commit it. To revoke one, return to **Organization Settings → CLI tokens** and delete it; any CLI that used it will need to sign in again.
 </Callout>
+
+See [CLI & SDKs](/en/docs/general-concepts/cli-and-sdk) for the full tool walkthrough.
 
 Next: put it all together in [Getting started](/en/docs/general-concepts/getting-started).
