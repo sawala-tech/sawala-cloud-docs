@@ -1,0 +1,82 @@
+---
+title: Agent Skills for AI coding agents
+description: Install the Sawala Agent Skills so Claude Code, GitHub Copilot, or OpenAI Codex knows how to drive the Sawala CLI and MCP servers correctly.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+> **TODO: translate to Indonesian.** English source is authoritative; render it into Indonesian below.
+
+If you use an AI coding agent, it can see the Sawala tools but does not know
+how to use them well. It does not know that updating a collection replaces the
+whole document, or that a boolean filter returns zero rows instead of an error.
+It learns each of these by failing, and forgets by the next session.
+
+Agent Skills fix that. One command installs the knowledge alongside the tools:
+
+```bash
+sawala skills install
+```
+
+## What gets installed
+
+Eight skills — an orientation skill plus one per product. Your agent loads a
+skill only when your request matches it, so having all eight costs almost
+nothing.
+
+| Skill | Covers |
+| --- | --- |
+| `sawala-cli` | Orientation: establishing scope, CLI vs MCP, safety rails, failure triage. Also covers Formulir and Berkasna. |
+| `sawala-kontena` | Schemas, entries, locales, single-type vs collection schemas |
+| `sawala-datana` | Collections, records, the filter grammar, field types, the pipeline plane |
+| `sawala-tugasna` | Boards, statuses, items, comments, the backlog |
+| `sawala-sebar` | Inbound email domains and addresses, broadcast campaigns |
+| `sawala-akuna` | End-user connections and data residency |
+| `sawala-ajena` | FLOW automations as code — pull, validate, push, debug runs |
+| `kodena-deploy` | The three deploy shapes, domains, logs, and their traps |
+
+## Works with your agent, whichever it is
+
+Agent Skills are an open cross-vendor format, but each tool looks in a
+different directory. `sawala skills install` writes to `.agents/skills/` by
+default, which **Codex and Copilot both read**.
+
+Claude Code reads `.claude/skills/` instead, so if you use it:
+
+```bash
+sawala skills install --target all
+```
+
+That writes `.agents/skills/`, `.claude/skills/`, and `.github/skills/`. You
+can also target one at a time with `--target claude`, `--target copilot`, or
+`--target codex`.
+
+<Callout type="info">
+  Prefer a single copy? Install the default and symlink it:
+  `ln -s ../.agents/skills .claude/skills`
+</Callout>
+
+## Other options
+
+```bash
+sawala skills list                      # what's bundled, with descriptions
+sawala skills install --global          # into your home directory, for every project
+sawala skills install sawala-datana     # just one
+sawala skills install --dry-run         # show what would be written
+sawala skills install --force           # overwrite existing copies
+sawala skills uninstall sawala-datana   # remove
+```
+
+Installing never overwrites an existing skill folder unless you pass `--force`,
+so a skill you have edited yourself is safe.
+
+## Checking it worked
+
+Open your agent in the directory you installed into and ask something the
+skills cover — for example, *"add a `featured` boolean field to my Datana
+`articles` collection."*
+
+With the skills installed, your agent will fetch the collection first, append
+the field, and send the whole document back. Without them, it will typically
+send a body containing only the new field, which deletes every other field on
+the collection.
