@@ -1,0 +1,34 @@
+---
+title: Transcription models
+description: The two speech-to-text models on Sawala Cloud — who makes them, what they cost, and where they are used.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Transcription turns a recording into text. On Sawala Cloud this happens inside a flow: point a read step at an audio file and the rest of the flow receives words instead of sound. That is what makes WhatsApp voice notes usable — a customer records a message, the flow transcribes it, and your assistant answers it like any other question.
+
+Both models are billed by **minutes of audio**, not by the number of words they produce. A one-minute voice note costs the same whether the speaker said thirty words or two hundred.
+
+## Whisper Large v3 Turbo
+
+**Made by OpenAI** — Whisper is OpenAI's open-weight speech-recognition family, and this model runs on Sawala's infrastructure rather than OpenAI's hosted service.
+
+This is the default and the one to use. It is multilingual, it is fast, and it transcribes Indonesian voice notes accurately, including the compressed audio that messaging apps produce. It also reports the exact length of the clip it processed, which means your usage figures reflect the real audio duration.
+
+Available in **FLOW only** — chat surfaces never transcribe, draw, or speak, so this model does not appear in the Crew or Connect model pickers.
+
+## Whisper (base, multilingual)
+
+**Made by OpenAI**, the base multilingual model from the same Whisper family.
+
+Cheaper than Turbo, but slower and less accurate. It is the budget option for high volumes of short clips where an occasional mistranscription is tolerable. If accuracy matters — and for customer messages it usually does — stay on Turbo.
+
+Available in **FLOW only** — the same reason as above.
+
+<Callout type="info">
+Unless you have a specific reason to economise, leave transcription on **Whisper Large v3 Turbo**. The price difference between the two models is small, and accuracy on a customer's voice note is worth more than the saving.
+</Callout>
+
+Next: [image generation models](/en/docs/general-concepts/ai-models/image-models).
+
+_Model list last verified: 2026-08-07._

@@ -1,0 +1,46 @@
+---
+title: Image generation models
+description: The three text-to-image models on Sawala Cloud — who makes them, what drives their cost, and which one to start with.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Image generation turns a written description into a picture. On Sawala Cloud this happens inside a flow: an image step takes a prompt — assembled from your own content if you like — and returns an image the flow can attach to a message, store as a file, or publish.
+
+Two things drive what an image costs. The first is its **size**: bigger images cost proportionally more. The second is the number of **refinement passes** (also called diffusion steps) the model makes — each pass sharpens the result, and each one is billed. A model designed for few passes is therefore dramatically cheaper than one that needs many.
+
+## FLUX.1 Schnell
+
+**Made by Black Forest Labs**, the lab founded by the original Stable Diffusion researchers. *Schnell* is German for "fast", and that is the point of this model.
+
+It is a turbo model: engineered to produce a finished image in very few passes, and it accepts at most **8**. That makes it both the fastest and, by a wide margin, the cheapest image model on the platform. It emits a **fixed image size** — you cannot ask it for a specific width, height, or aspect ratio.
+
+This is the default, and the right first choice. Use it for anything where throughput and cost matter more than precise dimensions.
+
+Available in **FLOW only** — chat surfaces never transcribe, draw, or speak, so this model does not appear in the Crew or Connect model pickers.
+
+## Leonardo Lucid Origin
+
+**Made by Leonardo.Ai**, an Australian studio whose models are aimed at design and marketing work.
+
+Its reason to exist here is **custom output size**: unlike FLUX, it accepts a width and height, so you can ask for a landscape banner, a square post, or a portrait card. It is not a turbo model — it needs roughly **20 to 40** passes to produce a sharp, finished image, and at low pass counts the result looks soft and unfinished.
+
+That combination makes it **many times more expensive per image** than FLUX.1 Schnell. Choose it when you need a specific aspect ratio or higher fidelity, and expect to pay for it.
+
+Available in **FLOW only** — the same reason as above.
+
+## Leonardo Phoenix 1.0
+
+**Made by Leonardo.Ai**, from the same family as Lucid Origin and with the same shape: custom width and height, roughly 20 to 40 passes for a finished result, and a comparable cost per image.
+
+Treat it as a design-oriented alternative rather than an upgrade — it is a different aesthetic, not a different capability. If Lucid Origin is not giving you the look you want, try this one with the same prompt.
+
+Available in **FLOW only** — the same reason as above.
+
+<Callout type="info">
+**Start with FLUX.1 Schnell.** It is the default, the fastest, and the cheapest, and its fixed output size is fine for most uses. Move to a Leonardo model only when you need a particular aspect ratio or a more polished result — and when you do, remember to raise the pass count, or the image will look unfinished.
+</Callout>
+
+Next: [speech synthesis models](/en/docs/general-concepts/ai-models/speech-models).
+
+_Model list last verified: 2026-08-07._
