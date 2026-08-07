@@ -1,0 +1,169 @@
+---
+title: AI models
+description: Every AI model available on Sawala Cloud — who makes it, what it is good at, what it costs, and where to choose it.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Sawala Cloud runs your AI features on a curated set of third-party models. You pick which one your assistant uses from a dropdown; you never manage API keys, servers, or capacity, and you never sign a separate contract with a model maker.
+
+Models do four things on the platform: they **answer questions** and write replies, they **transcribe recordings** into text, they **generate images** from a description, and they **speak text** aloud. Every model on this page is listed with its maker, so you always know whose model is answering your customers.
+
+## The three places a model runs
+
+Every availability statement on this page is written in terms of three surfaces, so it is worth fixing what they mean:
+
+- **Crew** — the assistant your own team chats with inside Ajena, grounded in the documents you have uploaded to your knowledge base. Low volume, quality first.
+- **Connect** — the assistant that replies to your customers on messaging channels such as WhatsApp. High volume, and it needs to be fast, affordable, and good at your customers' language.
+- **FLOW** — Ajena's automation builder. A flow is a sequence of steps, and several kinds of step call a model: one writes text, one transcribes a voice note, one generates an image, one speaks a reply.
+
+**Not every model is available on all three.** Check [Which models work where](#which-models-work-where) before you plan around a particular model — it is the difference between choosing a model for your team and choosing one your customers will ever see.
+
+## Chat and reasoning models at a glance
+
+Ten models answer questions and write replies. They are listed cheapest first, so the table reads as a price ladder.
+
+| Model | Made by | Context window | Cost | Available in |
+| --- | --- | --- | --- | --- |
+| Granite 4.0 Micro | IBM | 131K tokens | `$` | Connect · FLOW |
+| Qwen3 30B-A3B | Alibaba Cloud (Qwen team) | 33K tokens | `$` | Crew · Connect · FLOW — *Connect & FLOW default* |
+| GLM-4.7 Flash | Z.ai | 131K tokens | `$` | Crew · Connect · FLOW |
+| Gemma 4 26B | Google | 256K tokens | `$` | Crew · Connect · FLOW |
+| GPT-OSS 20B | OpenAI (open-weight) | 128K tokens | `$$` | Crew · Connect · FLOW |
+| Mistral Small 3.1 24B | Mistral AI | 128K tokens | `$$` | Crew · Connect · FLOW |
+| GPT-OSS 120B | OpenAI (open-weight) | 128K tokens | `$$` | Crew only |
+| Llama 3.3 70B (fast) | Meta | 24K tokens | `$$$` | Crew · Connect · FLOW — *Crew default* |
+| Nemotron 3 120B | NVIDIA | 256K tokens | `$$$` | Crew only |
+| Kimi K2.6 | Moonshot AI | 262K tokens | `$$$$` | Crew only |
+
+Each model is explained in full on [Chat & reasoning models](/en/docs/general-concepts/ai-models/chat-models) — what it is good at, how well it handles Bahasa Indonesia, and why it is offered where it is.
+
+The **context window** is how much text the model can consider at once: your instructions, the passages retrieved from your knowledge base, and the conversation so far, all together. A bigger window lets the assistant hold more of your material in view. Note that the two models used by default have the *tightest* windows on the platform — 24K and 33K tokens — while every newer model offers 128K or more.
+
+## Which models work where
+
+Some models are offered on every surface, some only where they make sense. This is the full picture, all sixteen models on the platform:
+
+**Available everywhere — general purpose (6)**
+
+| Model | Crew | Connect | FLOW |
+| --- | :-: | :-: | :-: |
+| Qwen3 30B-A3B | ✓ | ✓ | ✓ |
+| GLM-4.7 Flash | ✓ | ✓ | ✓ |
+| Gemma 4 26B | ✓ | ✓ | ✓ |
+| GPT-OSS 20B | ✓ | ✓ | ✓ |
+| Mistral Small 3.1 24B | ✓ | ✓ | ✓ |
+| Llama 3.3 70B (fast) | ✓ | ✓ | ✓ |
+
+**Crew only — premium reasoning (3)**
+
+| Model | Crew | Connect | FLOW |
+| --- | :-: | :-: | :-: |
+| GPT-OSS 120B | ✓ | — | — |
+| Nemotron 3 120B | ✓ | — | — |
+| Kimi K2.6 | ✓ | — | — |
+
+**Connect and FLOW only — ultra-cheap (1)**
+
+| Model | Crew | Connect | FLOW |
+| --- | :-: | :-: | :-: |
+| Granite 4.0 Micro | — | ✓ | ✓ |
+
+**FLOW only — audio and images (6)**
+
+| Model | Crew | Connect | FLOW |
+| --- | :-: | :-: | :-: |
+| Whisper Large v3 Turbo | — | — | ✓ |
+| Whisper (base) | — | — | ✓ |
+| FLUX.1 Schnell | — | — | ✓ |
+| Leonardo Lucid Origin | — | — | ✓ |
+| Leonardo Phoenix 1.0 | — | — | ✓ |
+| MeloTTS | — | — | ✓ |
+
+The pattern behind those groups:
+
+**The six general-purpose models** are the middle of the range: capable enough for your team's internal work, cheap and fast enough for customer volume. If you are unsure, choose from these.
+
+**The three Crew-only models** are the platform's most capable and most expensive. You cannot point your customer-facing Connect assistant at them, by design: they are shaped for deep work over long material — where a handful of high-quality answers a day is the usage pattern — and on a busy WhatsApp channel they would multiply the cost of every reply without making short answers any better.
+
+**Granite 4.0 Micro is the mirror image.** It is the cheapest model on the platform and is offered exactly where high volumes of small, cheap lookups happen, but it is deliberately withheld from Crew: a model this small is the wrong tool for grounded research across your internal documents.
+
+**The audio and image models appear only inside flows.** A chat surface never transcribes a recording, draws a picture, or speaks, so these six never show up in a Crew or Connect model picker — only in a flow step's own **Model** field.
+
+## Models for audio and images
+
+| Model | Made by | What it does | Billed by |
+| --- | --- | --- | --- |
+| Whisper Large v3 Turbo | OpenAI (open-weight) | speech → text | minutes of audio |
+| Whisper (base, multilingual) | OpenAI (open-weight) | speech → text | minutes of audio |
+| FLUX.1 Schnell | Black Forest Labs | text → image | image size and refinement passes |
+| Leonardo Lucid Origin | Leonardo.Ai | text → image, custom size | image size and refinement passes |
+| Leonardo Phoenix 1.0 | Leonardo.Ai | text → image, custom size | image size and refinement passes |
+| MeloTTS | MyShell | text → speech | minutes of audio produced |
+
+These are covered on [Transcription models](/en/docs/general-concepts/ai-models/transcription-models), [Image generation models](/en/docs/general-concepts/ai-models/image-models), and [Speech synthesis models](/en/docs/general-concepts/ai-models/speech-models).
+
+## How to choose
+
+Work through these in order — the first question usually eliminates most of the list.
+
+**Which surface is this for — your team, your customers, or an automation?** Answer that and the matrix above narrows the list before cost or context window enters into it.
+
+**Are you answering customers at volume?** Start with the Connect default (Qwen3 30B-A3B) and change it only when you have a reason. It is the cheapest capable option and it is the one we run by default for a reason.
+
+**Do you need the assistant to read long documents in one pass?** Then look for a 128K-or-larger window rather than the 24K default — a long contract plus a conversation will not fit in the tightest windows.
+
+**Do you mostly reply in Bahasa Indonesia?** Prefer the models marked as strong multilingual choices, GLM-4.7 Flash and Qwen3 in particular. Be aware that the GPT-OSS models tend to answer in English even in an Indonesian conversation.
+
+**Is cost the constraint?** The `$` tier is genuinely usable — for looking things up and writing short replies it is often indistinguishable from the tiers above it.
+
+**Are you doing hard multi-step reasoning over long material, for your own team?** That is exactly what the Crew-only models exist for. Use them there and leave your customer channel on something cheaper.
+
+## Where you choose a model
+
+<Steps>
+
+<Step>
+### Open Ajena settings
+
+Go to [ajena.sawala.cloud](https://ajena.sawala.cloud) and open **Settings**, then pick the surface you are configuring — **Crew** or **Connect** — and its **Model** page.
+</Step>
+
+<Step>
+### Set the model
+
+The dropdown lists only the models available for that surface, so the matrix above tells you in advance what you will find there. Each entry shows its context window and cost tier next to its name.
+
+Setting a model here makes it your organization's default. You can override it on a single project, and in Crew you can also switch model for one conversation from the picker in the chat header.
+</Step>
+
+<Step>
+### For automations, set it on the step
+
+Flow steps carry their own **Model** field, so one flow can transcribe a voice note with one model, draft a reply with another, and generate an image with a third. A step left unset uses the platform default for its kind of work.
+</Step>
+
+</Steps>
+
+A change to your Connect model applies to the very next incoming message — there is nothing to deploy and nothing to wait for.
+
+## What it costs
+
+The `$` to `$$$$` marks on this page are a **relative** guide to AI-compute cost, not a price. They rank the models against each other for one representative reply, and they are the same marks the model picker shows, so the docs and the product always agree.
+
+Two things drive what a reply actually costs: the size of the **prompt** (your instructions plus the passages retrieved from your knowledge base) and the length of the **reply**. A model with cheap output can still be expensive on a surface that sends it a large prompt every turn — which is why the tiers here blend both rather than ranking on output alone.
+
+Your actual usage is recorded per surface and per model, and you can read it in Ajena under **Settings → Usage**. What that usage costs on your plan is covered by your Sawala Cloud pricing.
+
+## Where your data goes
+
+{/* Reviewed by: pending — data-handling wording awaiting sign-off before merge. */}
+
+<Callout type="info">
+The models on this page run on Sawala's managed AI runtime, on our global edge network. When your assistant answers, the prompt goes to the model running there — **not** to the model maker's own service. Sawala does not use your prompts, your documents, or your assistants' replies to train models. What we record is usage: tokens, minutes of audio, and images generated, so we can meter and show it back to you under **Settings → Usage**.
+</Callout>
+
+Next: read the full entries for the models that answer your questions in [Chat & reasoning models](/en/docs/general-concepts/ai-models/chat-models).
+
+_Model list last verified: 2026-08-07._

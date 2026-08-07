@@ -1,0 +1,10 @@
+{
+  "title": "AI models",
+  "pages": [
+    "index",
+    "chat-models",
+    "transcription-models",
+    "image-models",
+    "speech-models"
+  ]
+}
