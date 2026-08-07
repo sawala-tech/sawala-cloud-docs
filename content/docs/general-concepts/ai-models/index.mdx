@@ -18,7 +18,7 @@ Every availability statement on this page is written in terms of three surfaces,
 
 - **Crew** — the assistant your own team chats with inside Ajena, grounded in the documents you have uploaded to your knowledge base. Low volume, quality first.
 - **Connect** — the assistant that replies to your customers on messaging channels such as WhatsApp. High volume, and it needs to be fast, affordable, and good at your customers' language.
-- **FLOW** — Ajena's automation builder. A flow is a sequence of steps, and several kinds of step call a model: one writes text, one transcribes a voice note, one generates an image, one speaks a reply.
+- **Flow** — Ajena's automation builder. A flow is a sequence of steps, and several kinds of step call a model: one writes text, one transcribes a voice note, one generates an image, one speaks a reply.
 
 **Not every model is available on all three.** Check [Which models work where](#which-models-work-where) before you plan around a particular model — it is the difference between choosing a model for your team and choosing one your customers will ever see.
 
@@ -28,20 +28,32 @@ Ten models answer questions and write replies. They are listed cheapest first, s
 
 | Model | Made by | Context window | Cost | Available in |
 | --- | --- | --- | --- | --- |
-| Granite 4.0 Micro | IBM | 131K tokens | `$` | Connect · FLOW |
-| Qwen3 30B-A3B | Alibaba Cloud (Qwen team) | 33K tokens | `$` | Crew · Connect · FLOW — *Connect & FLOW default* |
-| GLM-4.7 Flash | Z.ai | 131K tokens | `$` | Crew · Connect · FLOW |
-| Gemma 4 26B | Google | 256K tokens | `$` | Crew · Connect · FLOW |
-| GPT-OSS 20B | OpenAI (open-weight) | 128K tokens | `$$` | Crew · Connect · FLOW |
-| Mistral Small 3.1 24B | Mistral AI | 128K tokens | `$$` | Crew · Connect · FLOW |
-| GPT-OSS 120B | OpenAI (open-weight) | 128K tokens | `$$` | Crew only |
-| Llama 3.3 70B (fast) | Meta | 24K tokens | `$$$` | Crew · Connect · FLOW — *Crew default* |
+| Granite 4.0 Micro | IBM | 131K tokens | `$` | Connect & Flow |
+| Qwen3 30B-A3B | Alibaba Cloud | 33K tokens | `$` | All |
+| GLM-4.7 Flash | Z.ai | 131K tokens | `$` | All |
+| Gemma 4 26B | Google | 256K tokens | `$` | All |
+| GPT-OSS 20B | OpenAI | 128K tokens | `$$` | All |
+| Mistral Small 3.1 24B | Mistral AI | 128K tokens | `$$` | All |
+| GPT-OSS 120B | OpenAI | 128K tokens | `$$` | Crew only |
+| Llama 3.3 70B (fast) | Meta | 24K tokens | `$$$` | All |
 | Nemotron 3 120B | NVIDIA | 256K tokens | `$$$` | Crew only |
 | Kimi K2.6 | Moonshot AI | 262K tokens | `$$$$` | Crew only |
 
 Each model is explained in full on [Chat & reasoning models](/id/docs/general-concepts/ai-models/chat-models) — what it is good at, how well it handles Bahasa Indonesia, and why it is offered where it is.
 
-The **context window** is how much text the model can consider at once: your instructions, the passages retrieved from your knowledge base, and the conversation so far, all together. A bigger window lets the assistant hold more of your material in view. Note that the two models used by default have the *tightest* windows on the platform — 24K and 33K tokens — while every newer model offers 128K or more.
+The **context window** is how much text the model can consider at once: your instructions, the passages retrieved from your knowledge base, and the conversation so far, all together. A bigger window lets the assistant hold more of your material in view. Note the spread: the tightest windows on the platform are 24K and 33K tokens, while every newer model offers 128K or more.
+
+## Default models
+
+If nobody has chosen a model, each surface falls back to a platform default:
+
+| Surface | Default model |
+| --- | --- |
+| Crew | Llama 3.3 70B (fast) |
+| Connect | Qwen3 30B-A3B |
+| Flow (text steps) | Qwen3 30B-A3B |
+
+Treat this as a snapshot rather than a promise: defaults move as models improve, and the **Model** page for each surface always marks the one in force for your organization. Once you choose a model yourself, your choice takes precedence — a later change to the platform default leaves you where you are.
 
 ## Which models work where
 
@@ -49,7 +61,7 @@ Some models are offered on every surface, some only where they make sense. This 
 
 **Available everywhere — general purpose (6)**
 
-| Model | Crew | Connect | FLOW |
+| Model | Crew | Connect | Flow |
 | --- | :-: | :-: | :-: |
 | Qwen3 30B-A3B | ✓ | ✓ | ✓ |
 | GLM-4.7 Flash | ✓ | ✓ | ✓ |
@@ -60,21 +72,21 @@ Some models are offered on every surface, some only where they make sense. This 
 
 **Crew only — premium reasoning (3)**
 
-| Model | Crew | Connect | FLOW |
+| Model | Crew | Connect | Flow |
 | --- | :-: | :-: | :-: |
 | GPT-OSS 120B | ✓ | — | — |
 | Nemotron 3 120B | ✓ | — | — |
 | Kimi K2.6 | ✓ | — | — |
 
-**Connect and FLOW only — ultra-cheap (1)**
+**Connect and Flow only — ultra-cheap (1)**
 
-| Model | Crew | Connect | FLOW |
+| Model | Crew | Connect | Flow |
 | --- | :-: | :-: | :-: |
 | Granite 4.0 Micro | — | ✓ | ✓ |
 
-**FLOW only — audio and images (6)**
+**Flow only — audio and images (6)**
 
-| Model | Crew | Connect | FLOW |
+| Model | Crew | Connect | Flow |
 | --- | :-: | :-: | :-: |
 | Whisper Large v3 Turbo | — | — | ✓ |
 | Whisper (base) | — | — | ✓ |
@@ -97,8 +109,8 @@ The pattern behind those groups:
 
 | Model | Made by | What it does | Billed by |
 | --- | --- | --- | --- |
-| Whisper Large v3 Turbo | OpenAI (open-weight) | speech → text | minutes of audio |
-| Whisper (base, multilingual) | OpenAI (open-weight) | speech → text | minutes of audio |
+| Whisper Large v3 Turbo | OpenAI | speech → text | minutes of audio |
+| Whisper (base, multilingual) | OpenAI | speech → text | minutes of audio |
 | FLUX.1 Schnell | Black Forest Labs | text → image | image size and refinement passes |
 | Leonardo Lucid Origin | Leonardo.Ai | text → image, custom size | image size and refinement passes |
 | Leonardo Phoenix 1.0 | Leonardo.Ai | text → image, custom size | image size and refinement passes |
@@ -112,9 +124,9 @@ Work through these in order — the first question usually eliminates most of th
 
 **Which surface is this for — your team, your customers, or an automation?** Answer that and the matrix above narrows the list before cost or context window enters into it.
 
-**Are you answering customers at volume?** Start with the Connect default (Qwen3 30B-A3B) and change it only when you have a reason. It is the cheapest capable option and it is the one we run by default for a reason.
+**Are you answering customers at volume?** Start with your surface's [default](#default-models) and change it only when you have a reason — it is a cheap, capable, well-exercised starting point.
 
-**Do you need the assistant to read long documents in one pass?** Then look for a 128K-or-larger window rather than the 24K default — a long contract plus a conversation will not fit in the tightest windows.
+**Do you need the assistant to read long documents in one pass?** Then look for a 128K-or-larger window — a long contract plus a conversation will not fit in the 24K and 33K windows.
 
 **Do you mostly reply in Bahasa Indonesia?** Prefer the models marked as strong multilingual choices, GLM-4.7 Flash and Qwen3 in particular. Be aware that the GPT-OSS models tend to answer in English even in an Indonesian conversation.
 
@@ -137,7 +149,7 @@ Go to [ajena.sawala.cloud](https://ajena.sawala.cloud) and open **Settings**, th
 
 The dropdown lists only the models available for that surface, so the matrix above tells you in advance what you will find there. Each entry shows its context window and cost tier next to its name.
 
-Setting a model here makes it your organization's default. You can override it on a single project, and in Crew you can also switch model for one conversation from the picker in the chat header.
+Setting a model here applies it across your whole organization. You can override it on a single project, and in Crew you can also switch model for one conversation from the picker in the chat header.
 </Step>
 
 <Step>

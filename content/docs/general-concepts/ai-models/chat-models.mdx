@@ -9,7 +9,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 
 These ten models all do the same job: text in, text out. They read your instructions, the passages retrieved from your knowledge base, and the conversation so far, then write a reply. They can also decide mid-reply to call one of the actions you have configured — looking up an order, creating a ticket — and answer using the result.
 
-Every entry below follows the same shape: who makes it, what it is good at, its context window, its cost, how it handles Bahasa Indonesia, and the surfaces where you can select it. Models are listed cheapest first, in the same order as the table on [AI models](/id/docs/general-concepts/ai-models). If the term **Crew**, **Connect**, or **FLOW** is new, read [The three places a model runs](/id/docs/general-concepts/ai-models#the-three-places-a-model-runs) first.
+Every entry below follows the same shape: who makes it, what it is good at, its context window, its cost, how it handles Bahasa Indonesia, and the surfaces where you can select it. Models are listed cheapest first, in the same order as the table on [AI models](/id/docs/general-concepts/ai-models). If the term **Crew**, **Connect**, or **Flow** is new, read [The three places a model runs](/id/docs/general-concepts/ai-models#the-three-places-a-model-runs) first.
 
 ## Granite 4.0 Micro
 
@@ -23,35 +23,35 @@ It is the **cheapest** model on the platform by a wide margin — roughly a thir
 
 On Bahasa Indonesia, treat it as unproven for long prose: it is small enough that reply quality varies more than on the mid-range models. Try it on a sample of your own traffic before you switch a busy channel to it.
 
-Available in **Connect and FLOW only** — not selectable for Crew, because a model this small is the wrong tool for grounded research across your internal documents.
+Available in **Connect and Flow only** — not selectable for Crew, because a model this small is the wrong tool for grounded research across your internal documents.
 
 ## Qwen3 30B-A3B
 
-**Made by the Qwen team at Alibaba Cloud**, and released as open-weight models.
+**Made by Alibaba Cloud**, whose Qwen models are released as open weights.
 
-This is the platform's default for customer replies, and the model most Sawala Cloud assistants run on. It is a mixture-of-experts design, meaning it activates only a fraction of its parameters per reply — so it answers quickly and cheaply while still writing well. For grounded question-answering over a knowledge base it is hard to beat at the price.
+This is the workhorse for customer replies, and the model most Sawala Cloud assistants run on. It is a mixture-of-experts design, meaning it activates only a fraction of its parameters per reply — so it answers quickly and cheaply while still writing well. For grounded question-answering over a knowledge base it is hard to beat at the price.
 
 Its context window is about **33K tokens**. That is comfortable for a chat plus a handful of retrieved passages, but it is one of the two tightest windows on the platform — if you need the assistant to read a long document in one pass, choose something larger.
 
 Cost is `$` — the cheapest tier, and unusually capable for it.
 
-On Bahasa Indonesia it is a strong choice, and it is what we run by default on Indonesian customer channels.
+On Bahasa Indonesia it is a strong choice, and a common pick for Indonesian customer channels.
 
-Available in **Crew, Connect, and FLOW**. It is the built-in default for Connect and FLOW.
+Available in **Crew, Connect, and Flow**.
 
 ## GLM-4.7 Flash
 
 **Made by Z.ai**, the lab behind the GLM series, released as open-weight models.
 
-A fast, multilingual all-rounder, and the model to try first if you want to move off the default without paying more. It writes clean, natural replies and handles tool calls tidily. In our own testing it is the strongest cheap option for Indonesian-language customer conversations.
+A fast, multilingual all-rounder, and the model to try first if you want to move off your current one without paying more. It writes clean, natural replies and handles tool calls tidily. In our own testing it is the strongest cheap option for Indonesian-language customer conversations.
 
-Its context window is about **131K tokens** — four times the default's, at a barely different price. That headroom matters when your knowledge base returns long passages.
+Its context window is about **131K tokens** — four times Qwen3's, at a barely different price. That headroom matters when your knowledge base returns long passages.
 
 Cost is `$`, marginally above Qwen3 and still in the cheapest tier.
 
 On Bahasa Indonesia it is a strong choice — our current pick for the best balance of quality, cost, and Indonesian fluency.
 
-Available in **Crew, Connect, and FLOW**.
+Available in **Crew, Connect, and Flow**.
 
 ## Gemma 4 26B
 
@@ -65,7 +65,7 @@ Cost is `$`, the cheapest tier, which is unusual for a window this size.
 
 On Bahasa Indonesia it handles conversation well.
 
-Available in **Crew, Connect, and FLOW**.
+Available in **Crew, Connect, and Flow**.
 
 ## GPT-OSS 20B
 
@@ -79,7 +79,7 @@ Cost is `$$`. Note that its input is pricier than its output, so it costs more o
 
 On Bahasa Indonesia, watch the language: the GPT-OSS models lean toward answering in English even when the conversation is Indonesian. If you run an Indonesian channel, say so explicitly in your instructions, and check a few real replies after switching.
 
-Available in **Crew, Connect, and FLOW**.
+Available in **Crew, Connect, and Flow**.
 
 ## Mistral Small 3.1 24B
 
@@ -93,7 +93,7 @@ Cost is `$$`, driven mostly by its input price — the same caution as GPT-OSS 2
 
 On Bahasa Indonesia it is competent, though our own preference for Indonesian channels is GLM-4.7 Flash or Qwen3.
 
-Available in **Crew, Connect, and FLOW**.
+Available in **Crew, Connect, and Flow**.
 
 ## GPT-OSS 120B
 
@@ -113,7 +113,7 @@ Available in **Crew only** — not selectable for customer-facing Connect replie
 
 **Made by Meta**, the company behind the Llama family of open-weight models.
 
-The long-standing generalist, and the default for your team's Crew assistant. It writes fluently, follows instructions reliably, and is well understood — it is the model our own tooling was tuned against first.
+The long-standing generalist, widely used for internal team assistants. It writes fluently, follows instructions reliably, and is well understood — it is the model our own tooling was tuned against first.
 
 Its context window is **24K tokens** on Sawala Cloud, the tightest on the platform. This is the "fast" variant of the model, which trades window size for speed, so the number is well below the figure you may have seen quoted for Llama 3.3 elsewhere. It is fine for chat and a few retrieved passages; it is not the model for reading a long contract in one pass.
 
@@ -121,7 +121,7 @@ Cost is `$$$`, driven by an expensive output price — it is the priciest of the
 
 On Bahasa Indonesia it is capable, but replies can be rough around the edges: occasional English headings in an Indonesian thread and untidy formatting.
 
-Available in **Crew, Connect, and FLOW**. It is the built-in default for Crew.
+Available in **Crew, Connect, and Flow**.
 
 ## Nemotron 3 120B
 
@@ -152,7 +152,7 @@ On Bahasa Indonesia it handles conversation well, but the reason to choose it is
 Available in **Crew only** — not selectable for customer-facing Connect replies. At this price, putting it on a busy channel would multiply the cost of every reply, including the many that need no reasoning at all.
 
 <Callout type="info">
-**If you are not sure, use the default.** Crew defaults to Llama 3.3 70B (fast); Connect and FLOW default to Qwen3 30B-A3B. Those two are the most heavily exercised models on the platform. If an assistant starts behaving oddly after you change model — especially around calling your configured actions — switch that surface back to its default and try again. That single step tells you whether the model or your configuration is at fault.
+**If you are not sure, use your surface's default** — see [Default models](/id/docs/general-concepts/ai-models#default-models). Whichever models those are, they are the most heavily exercised on the platform. If an assistant starts behaving oddly after you change model — especially around calling your configured actions — switch that surface back to its default and try again. That single step tells you whether the model or your configuration is at fault.
 </Callout>
 
 Next: models for [transcription](/id/docs/general-concepts/ai-models/transcription-models), [image generation](/id/docs/general-concepts/ai-models/image-models), and [speech](/id/docs/general-concepts/ai-models/speech-models).
